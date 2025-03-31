@@ -30,18 +30,33 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
 
 ### Installation
 
-1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/sprout-notes.git
-   cd sprout-notes
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/bakiel/sprout-notes-app.git
+    cd sprout-notes-app 
+    ```
+    *(Note: The project will likely be scaffolded directly in the `Sprouts App` directory, so cloning might not be the first step if starting fresh)*
 
-2. Install dependencies
-   ```bash
-   npm install
-   ```
+2.  **Set up Frontend (React + Vite):**
+    *   If not already done, scaffold the project using Vite:
+        ```bash
+        # Run this in the desired parent directory (e.g., /Users/mac/Downloads)
+        npm create vite@latest "Sprouts App" --template react 
+        cd "Sprouts App"
+        ```
+    *   Install frontend dependencies (including react-icons):
+        ```bash
+        npm install
+        npm install react-icons --save
+        ```
+    *   Include Google Fonts (Poppins & Montserrat): Add links to the main `index.html` file in the `<head>` section, or import them in your main CSS file (`src/index.css`). Example for `index.html`:
+        ```html
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Poppins:wght@400&display=swap" rel="stylesheet">
+        ```
 
-3. Set up Supabase environment variables locally. Create a file `.env.local` in the `supabase/` directory (this file is ignored by git):
+3.  **Set up Backend (Supabase):**
    ```
    SUPABASE_URL=your_supabase_project_url
    SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -62,48 +77,53 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
    ```bash
    npm run dev 
    ```
-   *(Ensure your frontend code points to the local Supabase URL provided by `supabase start`)*
+   *(Ensure your frontend code points to the local Supabase URL provided by `supabase start` - typically managed via environment variables in Vite)*
 
-6. Build frontend for production:
-   ```bash
-   npm run build
-   ```
+6.  **Start Frontend Development Server:**
+    ```bash
+    # In the project root directory (/Users/mac/Downloads/Sprouts App)
+    npm run dev 
+    ```
 
-7. Deploy Supabase functions:
+7.  **Build Frontend for Production:**
+    ```bash
+    npm run build 
+    ```
+    *(This will create optimized static files, usually in a `dist/` folder)*
+
+8.  **Deploy Supabase Functions:**
    ```bash
    cd supabase
    supabase functions deploy --no-verify-jwt
    ```
 
-## Project Structure
+## Project Structure (React + Vite + Supabase)
 
 ```
-sprout-notes/
-├── index.html                 # Main entry point
-├── css/                       # Stylesheets
-│   ├── styles.css             # Main styles
-│   └── normalize.css          # CSS reset
-├── js/                        # Frontend JavaScript files
-│   ├── app.js                 # Main application logic
-│   ├── services/              # Frontend service interactions (calling Supabase functions)
-│   │   ├── RecipeService.js   # Handles recipe generation calls
-│   │   ├── AudioService.js    # Handles text-to-speech calls
-│   │   └── VisionService.js   # Handles image recognition calls
-│   └── utils/                 # Utility functions
-├── assets/                    # Static assets (images, icons)
-│   ├── images/
-│   └── icons/
+sprout-notes-app/ (or Sprouts App/)
+├── public/                    # Static assets served directly
+├── src/                       # React source code
+│   ├── assets/                # Frontend assets (images, etc.) processed by Vite
+│   ├── components/            # Reusable React UI components
+│   ├── services/              # Frontend services interacting with Supabase
+│   ├── App.css                # Main App component styles
+│   ├── App.jsx                # Main React App component
+│   ├── index.css              # Global styles
+│   └── main.jsx               # Entry point for React application
 ├── supabase/                  # Supabase backend configuration and functions
 │   ├── config.toml            # Supabase project configuration
 │   ├── functions/             # Supabase Edge Functions (API Proxies)
-│   │   ├── _shared/           # Shared code for functions (e.g., CORS)
-│   │   ├── deepseek-proxy/    # DeepSeek API proxy function
-│   │   ├── elevenlabs-proxy/  # ElevenLabs API proxy function
-│   │   └── gemini-proxy/      # Gemini API proxy function
+│   │   ├── _shared/
+│   │   ├── deepseek-proxy/
+│   │   ├── elevenlabs-proxy/
+│   │   └── gemini-proxy/
 │   └── migrations/            # Database migrations (if using Supabase DB)
-└── docs/                      # Documentation files
-    ├── planning-file.md       # Project planning document (updated)
-    └── tasks-file.md          # Task management (needs update)
+├── .env.local                 # Local frontend environment variables (optional, gitignored)
+├── .gitignore                 # Git ignore file
+├── index.html                 # HTML template entry point (managed by Vite)
+├── package.json               # Project dependencies and scripts
+├── vite.config.js             # Vite configuration file
+└── readme-file.md             # This file
 ```
 
 ## Feature Documentation
@@ -150,16 +170,18 @@ Sprout Notes uses Supabase Edge Functions as secure server-side proxies. API key
 
 ## Deployment
 
-The frontend can be deployed to any static hosting provider (e.g., Vercel, Netlify, GitHub Pages). The backend (Edge Functions, optional Database/Auth) is deployed using the Supabase CLI:
+The frontend is deployed using **GitHub Pages**, directly from the `master` branch of the `bakiel/sprout-notes-app` repository. Pushing changes to the `master` branch will automatically trigger a deployment (or will once a build workflow is added).
+
+The backend (Edge Functions, optional Database/Auth) is deployed separately using the Supabase CLI:
 ```bash
-# Deploy Edge Functions
+# Deploy Supabase Edge Functions
 cd supabase
 supabase functions deploy --no-verify-jwt
 
-# Deploy Database changes (if applicable)
+# Deploy Supabase Database changes (if applicable)
 supabase db push 
 ```
-Ensure production environment variables (API keys, etc.) are set in the Supabase project dashboard.
+Ensure production environment variables (API keys, Supabase URL/Key) are set correctly in both the Supabase project dashboard (for backend functions) and potentially in the GitHub repository settings/Actions secrets if needed for frontend builds later. Custom domain configuration is done via the GitHub repository settings under "Pages".
 
 ## Progressive Web App (PWA)
 

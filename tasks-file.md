@@ -18,32 +18,37 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 ## Phase 1: Project Setup & Core Infrastructure
 
-### Project Structure Setup
+### Project Structure Setup (React + Vite + Supabase)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Initialize project repository | P0 | S | TODO | |
-| Create directory structure | P0 | S | TODO | |
-| Set up CSS framework | P0 | M | TODO | |
-| Configure development environment | P0 | M | TODO | |
-| Set up version control | P0 | S | TODO | |
-| Create initial HTML structure | P0 | M | TODO | |
-| Initialize Supabase project (`supabase init`) | P0 | S | TODO | |
-| Link Supabase project (`supabase link`) | P0 | S | TODO | |
-| Configure Supabase local env vars (`.env.local`) | P0 | S | TODO | |
-| Set up Supabase local dev (`supabase start`) | P0 | M | TODO | |
+| Initialize Git repository | P0 | S | DONE | Cline |
+| Create remote GitHub repository | P0 | S | DONE | User |
+| Connect local repo to remote | P0 | S | DONE | Cline |
+| Push initial files to GitHub | P0 | M | DONE | Cline |
+| Scaffold React project using Vite (`npm create vite@latest`) | P0 | S | DONE | User/Cline |
+| Install frontend dependencies (`npm install`) | P0 | S | DONE | User/Cline |
+| Install react-icons (`npm install react-icons --save`) | P0 | S | DONE | Cline |
+| Add Google Fonts (Poppins, Montserrat) to `index.html` or CSS | P0 | S | DONE | Cline |
+| Clean up default Vite files/structure | P0 | S | DONE | Cline |
+| Set up basic CSS/styling approach (e.g., `index.css`, apply fonts) | P0 | M | DONE | Cline |
+| Configure Vite for Supabase env vars (e.g., using `import.meta.env`) | P0 | M | DONE | Cline |
+| Initialize Supabase project (`supabase init`) | P0 | S | DONE | Cline |
+| Link Supabase project (`supabase link`) | P0 | S | DONE | Cline |
+| Configure Supabase local env vars (`supabase/.env.local`) | P0 | S | DONE | Cline |
+| Set up Supabase local dev (`supabase start`) | P0 | M | BLOCKED | Docker Issue |
 
-### Core UI Implementation
+### Core UI Implementation (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Design and implement header/navigation | P0 | M | TODO | |
-| Create responsive grid system | P0 | M | TODO | |
-| Implement mobile navigation menu | P1 | M | TODO | |
-| Design and implement footer | P1 | S | TODO | |
-| Create loading indicators | P1 | S | TODO | |
-| Implement notification system | P1 | M | TODO | |
-| Create basic CSS animations | P2 | M | TODO | |
+| Create main `App.jsx` component structure | P0 | M | DONE | Cline |
+| Create `Header` component | P0 | M | DONE | Cline |
+| Create `Footer` component | P1 | S | DONE | Cline |
+| Implement basic routing (if needed for MVP views) | P1 | M | DONE | Template |
+| Create `LoadingIndicator` component | P1 | S | TODO | |
+| Create `Notification` component/system | P1 | M | TODO | |
+| Implement responsive layout using CSS | P0 | M | TODO | |
 | Implement dark/light mode toggle | P3 | M | TODO | |
 
 ### Authentication & User Data (Post-MVP - Requires Supabase Auth/DB)
@@ -65,38 +70,40 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 ## Phase 2: Recipe Generation Feature
 
-### DeepSeek API Integration (via Supabase Function)
+### DeepSeek API Integration (React Frontend + Supabase Function)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
 | Verify/Implement Supabase Edge Function: `deepseek-proxy` | P0 | M | TODO | |
-| Create frontend RecipeService class (calls Supabase func) | P0 | M | TODO | |
-| Implement request formatting (in frontend service) | P0 | M | TODO | |
-| Implement response parsing (in frontend service) | P0 | M | TODO | |
-| Add error handling for Supabase function calls | P0 | M | TODO | |
+| Create React hook/service (`useRecipeGenerator` or `RecipeService.js`) | P0 | M | TODO | |
+| Implement API call logic within hook/service (using Supabase client) | P0 | M | DONE | Cline |
+| Implement request formatting (in hook/service) | P0 | M | DONE | Cline |
+| Implement response parsing (in hook/service) | P0 | M | DONE | Cline |
+| Add error handling and loading state management (in hook/service) | P0 | M | DONE | Cline |
 | Implement caching for Supabase function results (optional) | P1 | M | TODO | |
 
-### Recipe Generation UI
+### Recipe Generation UI (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Design recipe input form | P0 | M | TODO | |
-| Implement ingredient input field | P0 | M | TODO | |
-| Create dietary restriction toggles | P0 | S | TODO | |
+| Create `RecipeGeneratorForm` component | P0 | M | DONE | Cline |
+| Implement ingredient input field (controlled component) | P0 | M | DONE | Cline |
+| Create dietary restriction toggles/checkboxes | P0 | S | DONE | Cline |
 | Implement cuisine type selector | P0 | S | TODO | |
 | Create serving size adjuster | P1 | S | TODO | |
+| Implement form state management (e.g., `useState`) | P0 | M | DONE | Cline |
+| Implement form submission logic (calls hook/service) | P0 | M | DONE | Cline |
 | Implement form validation | P1 | M | TODO | |
-| Create mobile-optimized input form | P1 | M | TODO | |
 
-### Recipe Display
+### Recipe Display (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Design recipe card component | P0 | M | TODO | |
-| Implement recipe display layout | P0 | M | TODO | |
-| Create ingredients list with checkboxes | P0 | M | TODO | |
-| Implement step-by-step instructions | P0 | M | TODO | |
-| Add nutritional notes section | P1 | S | TODO | |
+| Create `RecipeCard` component | P0 | M | DONE | Cline |
+| Implement recipe display logic within `RecipeCard` | P0 | M | DONE | Cline |
+| Create ingredients list display | P0 | M | DONE | Cline |
+| Implement step-by-step instructions display | P0 | M | TODO | |
+| Add nutritional notes section display | P1 | S | TODO | |
 | Create cooking tips display | P1 | S | TODO | |
 | Implement recipe sharing functionality | P2 | M | TODO | |
 | Add print recipe feature | P2 | S | TODO | |
@@ -105,7 +112,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Implement recipe saving | P0 | M | TODO | |
+| Implement recipe saving (LocalStorage MVP) | P0 | M | TODO | |
 | Create saved recipes view | P0 | M | TODO | |
 | Implement recipe editing | P1 | M | TODO | |
 | Create recipe deletion feature | P1 | S | TODO | |
@@ -118,29 +125,29 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 ## Phase 3: Note-Taking Feature
 
-### Note Editor
+### Note Editor (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Design note editor UI | P0 | M | TODO | |
-| Implement basic text editing | P0 | M | TODO | |
-| Create note saving functionality | P0 | M | TODO | |
+| Create `NoteEditor` component | P0 | M | TODO | |
+| Implement basic text editing (controlled textarea) | P0 | M | TODO | |
+| Create note saving functionality (LocalStorage MVP) | P0 | M | TODO | |
 | Implement note title handling | P0 | S | TODO | |
 | Add rich text formatting options | P1 | L | TODO | |
 | Implement image insertion in notes | P2 | M | TODO | |
 | Create note templates | P2 | M | TODO | |
 | Add spell-checking | P3 | M | TODO | |
 
-### Note Organization
+### Note Organization (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Implement note listing view | P0 | M | TODO | |
-| Create note search functionality | P1 | M | TODO | |
-| Implement manual tagging system | P1 | M | TODO | |
-| Add note sorting options | P1 | S | TODO | |
-| Implement note categories | P1 | M | TODO | |
-| Create note linking with recipes | P1 | M | TODO | |
+| Create `NoteList` component | P0 | M | TODO | |
+| Create `NoteSearch` component | P1 | M | TODO | |
+| Implement manual tagging system (UI + LocalStorage) | P1 | M | TODO | |
+| Add note sorting options (UI) | P1 | S | TODO | |
+| Implement note categories (UI + LocalStorage) | P1 | M | TODO | |
+| Create note linking with recipes (UI + LocalStorage) | P1 | M | TODO | |
 | Implement note import/export | P2 | M | TODO | |
 | Add note sharing functionality | P3 | M | TODO | |
 
@@ -286,19 +293,20 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 ## Phase 8: Deployment & Documentation
 
-### Deployment
+### Deployment (React + Vite + Supabase + GitHub Pages)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Configure frontend static hosting (e.g., Vercel, Netlify) | P0 | M | TODO | |
-| Set up frontend production build process | P0 | M | TODO | |
+| Enable GitHub Pages in repository settings | P0 | S | DONE | User |
+| Configure custom domain in GitHub Pages (optional, later) | P2 | S | TODO | |
+| Verify Vite production build (`npm run build`) | P0 | S | TODO | |
 | Configure Supabase production environment variables | P0 | M | TODO | |
-| Implement environment-specific configs (frontend) | P0 | S | TODO | |
+| Configure Vite production env vars (if needed for Supabase keys) | P0 | S | TODO | |
 | Deploy Supabase DB migrations (`supabase db push`) | P1 | M | TODO | |
 | Deploy Supabase Edge Functions (`supabase functions deploy`) | P0 | M | TODO | |
-| Set up CI/CD for frontend deployment | P1 | L | TODO | |
+| Set up GitHub Actions workflow for Vite build & deploy to Pages | P1 | L | TODO | |
 | Set up CI/CD for Supabase function/migration deployment | P2 | L | TODO | |
-| Implement monitoring (hosting provider/Supabase logs) | P1 | M | TODO | |
+| Implement monitoring (Supabase logs, frontend analytics) | P1 | M | TODO | |
 | Set up analytics (frontend) | P2 | M | TODO | |
 
 ### Documentation

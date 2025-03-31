@@ -1,0 +1,37 @@
+/* Basic Resets */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: 'Poppins', sans-serif; /* Default body font */
+  line-height: 1.6;
+  background-color: #f5f5dc; /* Beige background from plan */
+  color: #333333; /* Dark Gray text from plan */
+}
+
+/* Apply Montserrat to headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600; /* Semi-bold from plan */
+  margin-bottom: 0.5em;
+  color: #1b5e20; /* Dark Green accent from plan */
+}
+
+/* Dark Mode Styles (Basic) */
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: #333333; /* Dark Gray background */
+    color: #f5f5dc; /* Beige text */
+    color-scheme: dark;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    color: #8bc34a; /* Light Green accent for dark mode */
+  }
+  /* Add other dark mode overrides as needed */
+}
+
+/* Add other global styles below */

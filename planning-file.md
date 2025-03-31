@@ -90,11 +90,12 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 
 ### Frontend
 
-- **Framework**: Vanilla JavaScript with potential for future React migration
-- **UI/Design**: Mobile-first approach using custom CSS
-- **Responsiveness**: Flexbox and Grid for layouts
-- **Assets**: SVG icons, optimized images
+- **Framework**: React (using Vite for build tooling)
+- **UI/Design**: Mobile-first approach using CSS (potentially CSS Modules or a UI library later)
+- **Responsiveness**: CSS Flexbox and Grid
+- **Assets**: Icons via `react-icons`, optimized images
 - **PWA Features**: Service workers for offline capability
+- **Hosting**: GitHub Pages
 
 ### Backend
 
@@ -167,9 +168,8 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
   - Text: #333333 (Dark Gray)
 
 - **Typography**:
-  - Font Family: Poppins
-  - Headings: Semi-bold (600)
-  - Body: Regular (400)
+  - Primary Font (Body): Poppins (Regular 400)
+  - Secondary Font (Headings): Montserrat (Semi-bold 600)
   - Scale: 1rem base with 1.25 ratio
 
 - **Spacing System**:
@@ -180,7 +180,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
   - Cards for recipes and notes
   - Form elements with consistent styling
   - Buttons with clear hover/active states
-  - Icons with consistent size and color
+- **Icons**: `react-icons` library (includes Font Awesome Free, Material Design, etc.)
 
 ### Accessibility Considerations
 
