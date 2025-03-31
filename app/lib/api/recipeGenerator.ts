@@ -1,4 +1,5 @@
 // Direct API client for DeepSeek (used as a fallback when Supabase Edge Functions aren't available)
+// Provides recipe generation and AI-assisted recipe editing functionality
 
 // Define types
 export interface RecipeRequest {
@@ -18,11 +19,110 @@ export interface Recipe {
   servings?: string;
   nutritionalNotes?: string[]; // Array of nutrition facts
   cookingTips?: string[]; // Array of helpful cooking tips
+  id?: string; // Unique identifier for the recipe
+}
+
+export interface RecipeEditRequest {
+  recipe: Recipe;
+  editInstructions: string;
 }
 
 // DeepSeek API key - in production this should be secured in an Edge Function
 // For development purposes only
 const DEEPSEEK_API_KEY = 'sk-121a8ea2510e44e49c880b6746ee10ca';
+
+/**
+ * Edit a recipe with AI assistance
+ * @param request Object containing the recipe to edit and instructions for editing
+ * @returns The edited recipe
+ */
+export async function editRecipe(request: RecipeEditRequest): Promise<Recipe> {
+  const { recipe, editInstructions } = request;
+  
+  if (!recipe) {
+    throw new Error("Invalid request: recipe is required");
+  }
+  
+  if (!editInstructions) {
+    throw new Error("Invalid request: editInstructions is required");
+  }
+  
+  // Create a JSON string representation of the recipe
+  const recipeJson = JSON.stringify(recipe, null, 2);
+  
+  // Craft prompt for DeepSeek API
+  const prompt = `I have a vegan recipe that I want to modify. Here's the current recipe in JSON format:
+  
+${recipeJson}
+
+Please modify this recipe according to these instructions: ${editInstructions}
+
+Return the modified recipe in the same JSON format with all the same fields. Preserve the recipe's ID if it exists. Make sure the recipe remains vegan and practical for home cooking. The response should be valid JSON only.`;
+
+  console.log("Calling DeepSeek API for recipe editing with instructions:", editInstructions);
+
+  try {
+    // Call DeepSeek API
+    const deepseekResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional vegan chef. You specialize in creating and modifying plant-based recipes that are delicious and practical. Your responses should be in valid JSON format only, with no additional text."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!deepseekResponse.ok) {
+      const errorData = await deepseekResponse.json();
+      throw new Error(`DeepSeek API error: ${deepseekResponse.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    // Parse DeepSeek response
+    const deepseekData = await deepseekResponse.json();
+    console.log("Raw DeepSeek response for recipe editing:", JSON.stringify(deepseekData, null, 2));
+
+    // Extract the response content from DeepSeek
+    const content = deepseekData.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("Invalid response from DeepSeek API: Missing content");
+    }
+
+    try {
+      // Parse JSON from DeepSeek response
+      // Sometimes DeepSeek might include markdown backticks for JSON, so we need to handle that
+      const jsonStr = content.replace(/```json|```/g, '').trim();
+      const editedRecipe = JSON.parse(jsonStr) as Recipe;
+      
+      // Ensure the recipe ID is preserved
+      if (recipe.id && !editedRecipe.id) {
+        editedRecipe.id = recipe.id;
+      }
+      
+      return editedRecipe;
+    } catch (jsonError) {
+      console.error("Error parsing DeepSeek response for recipe editing:", jsonError);
+      console.error("Response content:", content);
+      throw new Error("Failed to parse edited recipe data from DeepSeek API");
+    }
+  } catch (error) {
+    console.error("Error calling DeepSeek API for recipe editing:", error);
+    throw error;
+  }
+}
 
 /**
  * Generate a recipe directly using the DeepSeek API

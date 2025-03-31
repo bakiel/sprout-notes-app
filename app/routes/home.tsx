@@ -5,7 +5,7 @@ import NoteEditor from '../components/NoteEditor';
 import NoteList from '../components/NoteList';
 import LoadingIndicator from '../components/LoadingIndicator';
 import { supabase } from '../lib/supabaseClient';
-import { generateRecipe } from '../lib/api/recipeGenerator'; // Import direct API client
+import { generateRecipe, editRecipe } from '../lib/api/recipeGenerator'; // Import direct API client
 import type { Review } from '../components/RecipeReview';
 
 // Define types
@@ -53,6 +53,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [formResetKey, setFormResetKey] = useState<number>(0); // Key to force form reset
+  const [isEditingRecipe, setIsEditingRecipe] = useState<boolean>(false);
+  const [editInstructions, setEditInstructions] = useState<string>('');
   
   // Notes state
   const [notes, setNotes] = useState<Note[]>([]);
@@ -269,6 +271,78 @@ export default function Home() {
     }
   };
 
+  // Handle editing a recipe
+  const handleEditRecipe = (recipe: Recipe) => {
+    if (!recipe) return;
+    setIsEditingRecipe(true);
+    setEditInstructions('');
+  };
+  
+  // Handle applying AI-assisted recipe edits
+  const handleApplyRecipeEdit = async () => {
+    if (!currentRecipe || !editInstructions.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // First try using Supabase Edge Function (if implemented)
+      try {
+        console.log("Attempting to use Supabase Edge Function for recipe editing...");
+        const { data, error: functionError } = await supabase.functions.invoke('deepseek-proxy', {
+          body: { 
+            recipe: currentRecipe,
+            editInstructions: editInstructions,
+            action: 'edit'
+          },
+        });
+
+        if (functionError) {
+          throw functionError;
+        }
+
+        if (!data || typeof data !== 'object' || !data.recipe) {
+          throw new Error("Invalid response format from recipe editor.");
+        }
+        
+        // Ensure the recipe ID is preserved
+        const editedRecipe = {
+          ...data.recipe as Recipe,
+          id: currentRecipe.id
+        };
+        
+        setCurrentRecipe(editedRecipe);
+        console.log("Successfully edited recipe using Supabase Edge Function");
+        
+      } catch (supabaseError: any) {
+        // If Supabase Edge Function fails, try direct API call
+        console.error("Error calling Supabase function for editing:", supabaseError);
+        console.log("Falling back to direct API call for recipe editing...");
+        
+        // Call DeepSeek API directly as a fallback
+        const editedRecipe = await editRecipe({
+          recipe: currentRecipe,
+          editInstructions: editInstructions
+        });
+        
+        // Ensure the recipe ID is preserved
+        if (currentRecipe.id && !editedRecipe.id) {
+          editedRecipe.id = currentRecipe.id;
+        }
+        
+        setCurrentRecipe(editedRecipe);
+        console.log("Successfully edited recipe using direct API call");
+      }
+    } catch (err: any) {
+      console.error("Recipe editing failed:", err);
+      setError(`Failed to edit recipe: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+      setIsEditingRecipe(false);
+      setEditInstructions('');
+    }
+  };
+
   // Handle saving the currently displayed recipe
   const handleSaveRecipe = (recipeToSave: Recipe) => {
     // Ensure recipe has an ID
@@ -374,14 +448,53 @@ export default function Home() {
           {isLoading ? (
             <LoadingIndicator message="Generating your delicious recipe..." />
           ) : (
-          <RecipeCard 
-            recipe={currentRecipe} 
-            isLoading={false} // isLoading is handled outside now
-            onSave={handleSaveRecipe}
-            onNewRecipe={handleNewRecipe}
-            reviews={currentRecipe?.id ? recipeReviews[currentRecipe.id] || [] : []}
-            onSubmitReview={handleSubmitReview}
-          />
+            isEditingRecipe ? (
+              <div style={styles.editRecipeContainer}>
+                <h3 style={styles.editRecipeTitle}>Edit Recipe</h3>
+                <p style={styles.editRecipeInstructions}>
+                  Describe how you'd like to modify the recipe. For example: "Make it spicier", 
+                  "Reduce the cooking time", "Add more protein", "Make it oil-free", etc.
+                </p>
+                <textarea
+                  value={editInstructions}
+                  onChange={(e) => setEditInstructions(e.target.value)}
+                  placeholder="Enter your editing instructions here..."
+                  style={styles.editInstructionsTextarea}
+                />
+                <div style={styles.editButtonsContainer}>
+                  <button 
+                    onClick={handleApplyRecipeEdit}
+                    disabled={!editInstructions.trim()}
+                    style={{
+                      ...styles.applyEditButton,
+                      opacity: !editInstructions.trim() ? 0.5 : 1,
+                      cursor: !editInstructions.trim() ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Apply Changes
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsEditingRecipe(false);
+                      setEditInstructions('');
+                    }}
+                    style={styles.cancelEditButton}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <RecipeCard 
+                recipe={currentRecipe} 
+                isLoading={false} // isLoading is handled outside now
+                onSave={handleSaveRecipe}
+                onNewRecipe={handleNewRecipe}
+                onEdit={handleEditRecipe}
+                reviews={currentRecipe?.id ? recipeReviews[currentRecipe.id] || [] : []}
+                onSubmitReview={handleSubmitReview}
+              />
+            )
           )}
         </div>
       </section>
@@ -494,5 +607,67 @@ const styles = {
     fontWeight: 500,
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
+  } as React.CSSProperties,
+  // Recipe editing styles
+  editRecipeContainer: {
+    backgroundColor: '#ffffff',
+    padding: '1.5rem',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+    maxWidth: '800px',
+    margin: '0 auto',
+    fontFamily: "'Poppins', sans-serif",
+  } as React.CSSProperties,
+  editRecipeTitle: {
+    fontFamily: "'Montserrat', sans-serif",
+    color: '#ff8f00', // Amber color to match edit button
+    marginBottom: '1rem',
+    borderBottom: '2px solid #ffca28',
+    paddingBottom: '0.5rem',
+  } as React.CSSProperties,
+  editRecipeInstructions: {
+    marginBottom: '1rem',
+    lineHeight: '1.5',
+  } as React.CSSProperties,
+  editInstructionsTextarea: {
+    width: '100%',
+    minHeight: '150px',
+    padding: '0.8rem',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.95rem',
+    marginBottom: '1rem',
+    resize: 'vertical',
+  } as React.CSSProperties,
+  editButtonsContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '1rem',
+    marginTop: '1rem',
+  } as React.CSSProperties,
+  applyEditButton: {
+    backgroundColor: '#ff8f00', // Amber
+    color: 'white',
+    padding: '0.6rem 1.2rem',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  } as React.CSSProperties,
+  cancelEditButton: {
+    backgroundColor: '#f5f5f5',
+    color: '#555',
+    padding: '0.6rem 1.2rem',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   } as React.CSSProperties,
 };

@@ -1,13 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, handleCors, addCorsHeaders } from "../_shared/cors.ts";
 
-// Interface for request body
-interface RecipeRequestBody {
+// Interface for recipe generation request body
+interface RecipeGenerationRequestBody {
   ingredients: string[];
   restrictions: string[];
   cuisineType?: string;
   servingSize?: number;
 }
+
+// Interface for recipe editing request body
+interface RecipeEditRequestBody {
+  recipe: Recipe;
+  editInstructions: string;
+  action: 'edit';
+}
+
+// Combined request body type
+type RequestBody = RecipeGenerationRequestBody | RecipeEditRequestBody;
 
 // Interface for the recipe response
 interface Recipe {
@@ -29,6 +39,11 @@ if (!apiKey) {
   console.error("DEEPSEEK_API_KEY environment variable is not set");
 }
 
+// Helper function to determine if the request is for recipe editing
+function isRecipeEditRequest(request: any): request is RecipeEditRequestBody {
+  return request && request.action === 'edit' && request.recipe && request.editInstructions;
+}
+
 serve(async (req) => {
   // Handle CORS preflight request
   const corsResponse = handleCors(req);
@@ -46,38 +61,83 @@ serve(async (req) => {
     }
 
     // Parse request JSON
-    const requestData: RecipeRequestBody = await req.json();
-    const { ingredients, restrictions } = requestData;
+    const requestData: RequestBody = await req.json();
+    
+    // Determine if this is a recipe edit request or a recipe generation request
+    let prompt: string;
+    
+    if (isRecipeEditRequest(requestData)) {
+      // Recipe editing request
+      const { recipe, editInstructions } = requestData;
+      
+      if (!recipe) {
+        return new Response(
+          JSON.stringify({ error: "Invalid request: recipe is required for editing" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      if (!editInstructions) {
+        return new Response(
+          JSON.stringify({ error: "Invalid request: editInstructions is required" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      // Create a JSON string representation of the recipe
+      const recipeJson = JSON.stringify(recipe, null, 2);
+      
+      // Craft prompt for recipe editing
+      prompt = `I have a vegan recipe that I want to modify. Here's the current recipe in JSON format:
+      
+${recipeJson}
 
-    // Validate request data
-    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Invalid request: ingredients must be a non-empty array" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+Please modify this recipe according to these instructions: ${editInstructions}
+
+Return the modified recipe in the same JSON format with all the same fields. Preserve the recipe's ID if it exists. Make sure the recipe remains vegan and practical for home cooking. The response should be valid JSON only.`;
+
+      console.log("Calling DeepSeek API for recipe editing with instructions:", editInstructions);
+    } else {
+      // Recipe generation request
+      const { ingredients, restrictions } = requestData as RecipeGenerationRequestBody;
+      
+      // Validate request data
+      if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Invalid request: ingredients must be a non-empty array" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      // Craft prompt for recipe generation
+      const restrictionsText = restrictions?.length
+        ? ` The recipe must be ${restrictions.join(' and ')}.`
+        : "";
+        
+      const cuisineText = (requestData as RecipeGenerationRequestBody).cuisineType
+        ? ` Make it a ${(requestData as RecipeGenerationRequestBody).cuisineType} style dish.`
+        : "";
+        
+      const servingSizeText = (requestData as RecipeGenerationRequestBody).servingSize
+        ? ` Make the recipe for ${(requestData as RecipeGenerationRequestBody).servingSize} servings.`
+        : "";
+
+      prompt = `Generate a vegan recipe using these ingredients: ${ingredients.join(
+        ", "
+      )}.${restrictionsText}${cuisineText}${servingSizeText} The recipe should be delicious, practical, and suitable for home cooking. Format the response as a JSON object with these fields: title, description, ingredients (as an array), instructions (as an array of steps), nutritionalNotes (as an array of nutrition facts), and cookingTips (as an array of helpful tips). Each step should be clear and detailed. Include nutritional information like calories, protein, carbs, and fat estimates. Also include 3-5 cooking tips specific to this recipe. You may add small amounts of common ingredients not listed if needed for a complete recipe.`;
+      
+      console.log("Calling DeepSeek API for recipe generation with ingredients:", ingredients.join(", "));
     }
 
-    // Craft prompt for DeepSeek API
-    const restrictionsText = restrictions?.length
-      ? ` The recipe must be ${restrictions.join(' and ')}.`
-      : "";
-      
-    const cuisineText = requestData.cuisineType
-      ? ` Make it a ${requestData.cuisineType} style dish.`
-      : "";
-      
-    const servingSizeText = requestData.servingSize
-      ? ` Make the recipe for ${requestData.servingSize} servings.`
-      : "";
-
-    const prompt = `Generate a vegan recipe using these ingredients: ${ingredients.join(
-      ", "
-    )}.${restrictionsText}${cuisineText}${servingSizeText} The recipe should be delicious, practical, and suitable for home cooking. Format the response as a JSON object with these fields: title, description, ingredients (as an array), instructions (as an array of steps), nutritionalNotes (as an array of nutrition facts), and cookingTips (as an array of helpful tips). Each step should be clear and detailed. Include nutritional information like calories, protein, carbs, and fat estimates. Also include 3-5 cooking tips specific to this recipe. You may add small amounts of common ingredients not listed if needed for a complete recipe.`;
-
-    console.log("Calling DeepSeek API with prompt:", prompt);
 
     // Call DeepSeek API
     const deepseekResponse = await fetch("https://api.deepseek.com/v1/chat/completions", {

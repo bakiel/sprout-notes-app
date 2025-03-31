@@ -21,6 +21,7 @@ interface RecipeCardProps {
   isLoading: boolean;
   onSave?: (recipe: Recipe) => void; // Optional save handler
   onNewRecipe?: () => void; // Optional handler for creating a new recipe
+  onEdit?: (recipe: Recipe) => void; // Optional handler for editing a recipe
   reviews?: Review[]; // Array of reviews for this recipe
   onSubmitReview?: (rating: number, comment: string) => void; // Handler for submitting a review
 }
@@ -30,6 +31,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   isLoading, 
   onSave, 
   onNewRecipe, 
+  onEdit,
   reviews = [], 
   onSubmitReview 
 }) => {
@@ -125,6 +127,15 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             style={styles.saveButton}
           >
             Save Recipe
+          </button>
+        )}
+        
+        {onEdit && (
+          <button 
+            onClick={() => onEdit(recipe)} 
+            style={styles.editButton}
+          >
+            Edit Recipe
           </button>
         )}
         
@@ -260,6 +271,18 @@ const styles = {
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
+  } as React.CSSProperties,
+  editButton: {
+    backgroundColor: '#fff8e1', // Light Amber
+    color: '#ff8f00', // Amber text
+    padding: '0.6rem 1.2rem',
+    border: '1px solid #ffca28',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   } as React.CSSProperties,
   newRecipeButton: {
     backgroundColor: '#e8f5e9', // Very Light Green
