@@ -40,11 +40,19 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isLoading }) => {
       </ul>
 
       <h4 style={styles.subheading}>Instructions</h4>
-      <ol style={styles.list}>
-        {recipe.instructions.map((step, index) => (
-          <li key={index} style={styles.listItem}>{step}</li>
-        ))}
-      </ol>
+      {/* Ensure instructions exist and have items before mapping */}
+      {recipe.instructions && recipe.instructions.length > 0 ? (
+        <ol style={styles.list}>
+          {recipe.instructions.map((step, index) => (
+            // Add numbering and ensure proper formatting
+            <li key={index} style={styles.listItem}>
+              <strong>Step {index + 1}:</strong> {step}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p style={styles.placeholder}>No instructions provided.</p>
+      )}
     </div>
   );
 };

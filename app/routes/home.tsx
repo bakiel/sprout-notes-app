@@ -2,7 +2,7 @@
 // import type { Route } from "./+types/home";
 // import { Welcome } from "../welcome/welcome";
 
-import React, { useState } from 'react'; 
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import RecipeGeneratorForm from '../components/RecipeGeneratorForm'; 
 import RecipeCard from '../components/RecipeCard'; 
 import { supabase } from '../lib/supabaseClient'; // Import Supabase client
@@ -26,12 +26,28 @@ export function meta(args: any) {
   ];
 }
 
+const LOCAL_STORAGE_KEY = 'sprout-notes-recipe';
+
 export default function Home() {
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(() => {
+    // Load initial recipe from localStorage
+    const savedRecipe = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return savedRecipe ? JSON.parse(savedRecipe) : null;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null); // To handle potential errors
 
-  // Placeholder function to simulate API call
+  // Effect to save recipe to localStorage whenever it changes
+  useEffect(() => {
+    if (recipe) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(recipe));
+    } else {
+      // Optionally clear localStorage if recipe is nullified (e.g., during loading)
+      // localStorage.removeItem(LOCAL_STORAGE_KEY); 
+    }
+  }, [recipe]);
+
+  // Function to handle recipe generation
   const handleGenerateRecipe = async (ingredients: string, restrictions: string[]) => {
     console.log("Generating recipe with:", { ingredients, restrictions });
     setIsLoading(true);
