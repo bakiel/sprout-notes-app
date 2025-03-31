@@ -34,4 +34,42 @@ h1, h2, h3, h4, h5, h6 {
   /* Add other dark mode overrides as needed */
 }
 
+/* Container for main content */
+.app-container {
+  max-width: 900px; /* Max width for larger screens */
+  margin: 0 auto; /* Center the container */
+  padding: 1rem; /* Default padding */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 0.75rem; /* Slightly reduce padding on tablets */
+  }
+  
+  /* Adjust heading sizes for smaller screens */
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.2rem; }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 0.5rem; /* Further reduce padding on mobile */
+  }
+  
+  /* Further adjust heading sizes for mobile */
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+  
+  /* Example: Make form elements full width on mobile */
+  /* You might need more specific selectors based on component structure */
+  form textarea, 
+  form select, 
+  form input[type="text"] {
+    font-size: 0.95rem; /* Slightly smaller font size for inputs */
+  }
+}
+
 /* Add other global styles below */

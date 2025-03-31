@@ -38,7 +38,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Header /> {/* Add Header */}
-        <div id="app-content" style={{ minHeight: 'calc(100vh - 100px)' }}> {/* Basic wrapper for min height */}
+        {/* Apply the container class */}
+        <div id="app-content" className="app-container" style={{ minHeight: 'calc(100vh - 100px)' }}> 
           {children}
         </div>
         <Footer /> {/* Add Footer */}

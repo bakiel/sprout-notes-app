@@ -1,4 +1,6 @@
 import React from 'react';
+import RecipeReview from './RecipeReview';
+import type { Review } from './RecipeReview';
 
 // Define a type for the recipe data (adjust as needed based on API response)
 interface Recipe {
@@ -9,14 +11,28 @@ interface Recipe {
   prepTime?: string;
   cookTime?: string;
   servings?: string;
+  nutritionalNotes?: string[]; // Array of nutrition facts
+  cookingTips?: string[]; // Array of helpful cooking tips
+  id?: string; // Unique identifier for the recipe
 }
 
 interface RecipeCardProps {
   recipe: Recipe | null; // Allow null when no recipe is generated yet
   isLoading: boolean;
+  onSave?: (recipe: Recipe) => void; // Optional save handler
+  onNewRecipe?: () => void; // Optional handler for creating a new recipe
+  reviews?: Review[]; // Array of reviews for this recipe
+  onSubmitReview?: (rating: number, comment: string) => void; // Handler for submitting a review
 }
 
-const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isLoading }) => {
+const RecipeCard: React.FC<RecipeCardProps> = ({ 
+  recipe, 
+  isLoading, 
+  onSave, 
+  onNewRecipe, 
+  reviews = [], 
+  onSubmitReview 
+}) => {
   if (isLoading) {
     return <div style={styles.loading}>Loading recipe...</div>;
   }
@@ -42,16 +58,92 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isLoading }) => {
       <h4 style={styles.subheading}>Instructions</h4>
       {/* Ensure instructions exist and have items before mapping */}
       {recipe.instructions && recipe.instructions.length > 0 ? (
-        <ol style={styles.list}>
+        <div style={styles.instructionsContainer}>
           {recipe.instructions.map((step, index) => (
-            // Add numbering and ensure proper formatting
-            <li key={index} style={styles.listItem}>
-              <strong>Step {index + 1}:</strong> {step}
-            </li>
+            <div key={index} style={styles.instructionStep}>
+              <div style={styles.stepNumber}>{index + 1}</div>
+              <div style={styles.stepContent}>
+                <p style={styles.stepText}>{step}</p>
+              </div>
+            </div>
           ))}
-        </ol>
+        </div>
       ) : (
         <p style={styles.placeholder}>No instructions provided.</p>
+      )}
+      
+      {/* Optional timing information */}
+      {(recipe.prepTime || recipe.cookTime || recipe.servings) && (
+        <div style={styles.cookingInfo}>
+          {recipe.prepTime && (
+            <div style={styles.cookingInfoItem}>
+              <strong>Prep Time:</strong> {recipe.prepTime}
+            </div>
+          )}
+          {recipe.cookTime && (
+            <div style={styles.cookingInfoItem}>
+              <strong>Cook Time:</strong> {recipe.cookTime}
+            </div>
+          )}
+          {recipe.servings && (
+            <div style={styles.cookingInfoItem}>
+              <strong>Servings:</strong> {recipe.servings}
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Nutritional Notes Section */}
+      {recipe.nutritionalNotes && recipe.nutritionalNotes.length > 0 && (
+        <>
+          <h4 style={styles.subheading}>Nutritional Information</h4>
+          <ul style={styles.list}>
+            {recipe.nutritionalNotes.map((note, index) => (
+              <li key={index} style={styles.listItem}>{note}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      
+      {/* Cooking Tips Section */}
+      {recipe.cookingTips && recipe.cookingTips.length > 0 && (
+        <>
+          <h4 style={styles.subheading}>Cooking Tips</h4>
+          <ul style={styles.list}>
+            {recipe.cookingTips.map((tip, index) => (
+              <li key={index} style={styles.listItem}>{tip}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      
+      {/* Action Buttons */}
+      <div style={styles.actionButtonsContainer}>
+        {onSave && (
+          <button 
+            onClick={() => onSave(recipe)} 
+            style={styles.saveButton}
+          >
+            Save Recipe
+          </button>
+        )}
+        
+        {onNewRecipe && (
+          <button 
+            onClick={onNewRecipe} 
+            style={styles.newRecipeButton}
+          >
+            New Recipe
+          </button>
+        )}
+      </div>
+      
+      {/* Recipe Reviews Section - only show for non-null recipes */}
+      {recipe && onSubmitReview && (
+        <RecipeReview 
+          existingReviews={reviews}
+          onSubmitReview={onSubmitReview}
+        />
       )}
     </div>
   );
@@ -67,6 +159,21 @@ const styles = {
     maxWidth: '800px',
     margin: '0 auto',
     fontFamily: "'Poppins', sans-serif",
+  } as React.CSSProperties,
+  cookingInfo: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '1rem',
+    marginTop: '1.5rem',
+    padding: '1rem',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+  } as React.CSSProperties,
+  cookingInfoItem: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#e8f5e9',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
   } as React.CSSProperties,
   title: {
     fontFamily: "'Montserrat', sans-serif",
@@ -95,6 +202,35 @@ const styles = {
     marginBottom: '0.5rem',
     lineHeight: '1.5',
   } as React.CSSProperties,
+  instructionsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  } as React.CSSProperties,
+  instructionStep: {
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'flex-start',
+  } as React.CSSProperties,
+  stepNumber: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '2rem',
+    height: '2rem',
+    backgroundColor: '#2e7d32',
+    color: 'white',
+    borderRadius: '50%',
+    fontWeight: 'bold',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  stepContent: {
+    flex: 1,
+  } as React.CSSProperties,
+  stepText: {
+    margin: 0,
+    lineHeight: '1.6',
+  } as React.CSSProperties,
   placeholder: {
     textAlign: 'center',
     padding: '2rem',
@@ -106,6 +242,36 @@ const styles = {
     padding: '2rem',
     color: '#2e7d32',
     fontWeight: 600,
+  } as React.CSSProperties,
+  actionButtonsContainer: {
+    marginTop: '1.5rem',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '1rem',
+  } as React.CSSProperties,
+  saveButton: {
+    backgroundColor: '#8bc34a', // Light Green
+    color: '#1b5e20', // Dark Green text
+    padding: '0.6rem 1.2rem',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+  } as React.CSSProperties,
+  newRecipeButton: {
+    backgroundColor: '#e8f5e9', // Very Light Green
+    color: '#2e7d32', // Green text
+    padding: '0.6rem 1.2rem',
+    border: '1px solid #8bc34a',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   } as React.CSSProperties,
 };
 

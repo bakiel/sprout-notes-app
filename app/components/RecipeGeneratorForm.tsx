@@ -1,16 +1,45 @@
-import React, { useState } from 'react';
-// Import icons if needed, e.g.:
-// import { FaSeedling } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
 
 // Define props interface
 interface RecipeGeneratorFormProps {
-  onGenerate: (ingredients: string, restrictions: string[]) => void; // Function prop
+  onGenerate: (ingredients: string, restrictions: string[], cuisineType: string, servingSize: number) => void;
+  resetKey?: number; // Optional key to force re-render and reset form
 }
 
-const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate }) => {
+const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate, resetKey = 0 }) => {
   const [ingredients, setIngredients] = useState('');
-  // TODO: Add state for dietary restrictions (e.g., using an object or Set)
-  const [restrictions, setRestrictions] = useState<string[]>([]); 
+  const [restrictions, setRestrictions] = useState<string[]>([]);
+  const [cuisineType, setCuisineType] = useState('');
+  const [servingSize, setServingSize] = useState<number>(2); // Default to 2 servings
+  
+  // Simple validation state
+  const [isValid, setIsValid] = useState(false);
+
+  // Check if form is valid
+  const checkFormValidity = () => {
+    // Form is valid if ingredients are not empty
+    const valid = ingredients.trim().length >= 3;
+    console.log("Form validity check:", valid);
+    setIsValid(valid);
+    return valid;
+  };
+
+  // Check validity whenever ingredients change
+  useEffect(() => {
+    checkFormValidity();
+  }, [ingredients]);
+
+  // Reset form when resetKey changes
+  useEffect(() => {
+    if (resetKey > 0) {
+      // Reset form to initial state
+      setIngredients('');
+      setRestrictions([]);
+      setCuisineType('');
+      setServingSize(2);
+      setIsValid(false);
+    }
+  }, [resetKey]);
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = event.target;
@@ -19,10 +48,25 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate })
     );
   };
 
+  // Function to handle serving size changes
+  const handleServingSizeChange = (newSize: number) => {
+    // Ensure serving size is between 1 and 10
+    const validSize = Math.max(1, Math.min(10, newSize));
+    setServingSize(validSize);
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    // Check form validity
+    if (!checkFormValidity()) {
+      console.log("Form submission blocked - invalid form");
+      return; // Don't submit if validation fails
+    }
+    
+    console.log("Form submitted successfully");
     // Call the onGenerate prop passed from the parent component
-    onGenerate(ingredients, restrictions); 
+    onGenerate(ingredients, restrictions, cuisineType, servingSize);
   };
 
   return (
@@ -35,11 +79,19 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate })
         name="ingredients"
         rows={4}
         value={ingredients}
-        onChange={(e) => setIngredients(e.target.value)}
+        onChange={(e) => {
+          setIngredients(e.target.value);
+        }}
         required
-        style={styles.textarea}
+        style={{
+          ...styles.textarea,
+          border: !isValid && ingredients.trim().length > 0 ? '1px solid #d32f2f' : '1px solid #ccc',
+        }}
         placeholder="e.g., tofu, broccoli, soy sauce, rice vinegar, ginger..."
       />
+      {!isValid && ingredients.trim().length > 0 && (
+        <div style={styles.errorText}>Please enter at least one valid ingredient (minimum 3 characters)</div>
+      )}
 
       <fieldset style={styles.fieldset}>
         <legend style={styles.legend}>Dietary Restrictions (Optional):</legend>
@@ -78,14 +130,77 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate })
           </label>
         </div>
       </fieldset>
+      
+      <label htmlFor="cuisineType" style={styles.label}>
+        Cuisine Type (Optional):
+      </label>
+      <select
+        id="cuisineType"
+        name="cuisineType"
+        value={cuisineType}
+        onChange={(e) => setCuisineType(e.target.value)}
+        style={styles.select}
+      >
+        <option value="">Any Cuisine</option>
+        <option value="asian">Asian</option>
+        <option value="mediterranean">Mediterranean</option>
+        <option value="mexican">Mexican</option>
+        <option value="indian">Indian</option>
+        <option value="italian">Italian</option>
+        <option value="middle-eastern">Middle Eastern</option>
+        <option value="american">American</option>
+        <option value="african">African</option>
+      </select>
+      
+      {/* Serving Size Adjuster */}
+      <label htmlFor="servingSize" style={styles.label}>
+        Serving Size:
+      </label>
+      <div style={styles.servingSizeContainer}>
+        <button 
+          type="button" 
+          onClick={() => handleServingSizeChange(servingSize - 1)}
+          style={styles.servingSizeButton}
+          aria-label="Decrease serving size"
+        >
+          -
+        </button>
+        <input
+          id="servingSize"
+          type="number"
+          min="1"
+          max="10"
+          value={servingSize}
+          onChange={(e) => handleServingSizeChange(parseInt(e.target.value) || 1)}
+          style={styles.servingSizeInput}
+        />
+        <button 
+          type="button" 
+          onClick={() => handleServingSizeChange(servingSize + 1)}
+          style={styles.servingSizeButton}
+          aria-label="Increase serving size"
+        >
+          +
+        </button>
+      </div>
 
-      <button type="submit" style={styles.button}>
-        {/* <FaSeedling style={{ marginRight: '8px' }} /> */}
+      <button 
+        type="submit" 
+        style={{
+          ...styles.button,
+          opacity: !isValid ? 0.7 : 1,
+          cursor: !isValid ? 'not-allowed' : 'pointer',
+        }}
+        disabled={!isValid}
+        onClick={() => console.log("Button clicked, isValid:", isValid)}
+      >
         Generate Recipe
       </button>
     </form>
   );
 };
+
+export default RecipeGeneratorForm;
 
 // Basic inline styles
 const styles = {
@@ -114,6 +229,14 @@ const styles = {
     minHeight: '80px',
     resize: 'vertical',
   } as React.CSSProperties,
+  select: {
+    padding: '0.75rem',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '1rem',
+    backgroundColor: 'white',
+  } as React.CSSProperties,
   fieldset: {
     border: '1px solid #ccc',
     borderRadius: '4px',
@@ -130,11 +253,46 @@ const styles = {
     flexWrap: 'wrap',
     gap: '1rem',
   } as React.CSSProperties,
-   checkboxLabel: {
+  checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
     fontFamily: "'Poppins', sans-serif",
+  } as React.CSSProperties,
+  // Serving size styles
+  servingSizeContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    maxWidth: '200px',
+  } as React.CSSProperties,
+  servingSizeButton: {
+    width: '36px',
+    height: '36px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    border: '1px solid #8bc34a',
+    borderRadius: '4px',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+  } as React.CSSProperties,
+  servingSizeInput: {
+    width: '60px',
+    padding: '0.5rem',
+    textAlign: 'center',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    fontFamily: "'Poppins', sans-serif",
+  } as React.CSSProperties,
+  errorText: {
+    color: '#d32f2f',
+    fontSize: '0.85rem',
+    marginTop: '-0.5rem',
   } as React.CSSProperties,
   button: {
     backgroundColor: '#2e7d32', // Primary Green
@@ -150,5 +308,3 @@ const styles = {
     // Add hover style later: '&:hover': { backgroundColor: '#1b5e20' }
   } as React.CSSProperties,
 };
-
-export default RecipeGeneratorForm;
