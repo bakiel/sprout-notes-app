@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LexicalRenderer from './LexicalRenderer'; // Import the renderer
 
 interface Note {
   id?: string;
@@ -7,6 +8,7 @@ interface Note {
   createdAt?: Date;
   updatedAt?: Date;
   tags?: string[];
+  category?: string; // Added category
   relatedRecipeId?: string;
 }
 
@@ -22,13 +24,30 @@ const NoteList: React.FC<NoteListProps> = ({
   onDeleteNote
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>(''); // State for category filter
+
+  // Get unique categories from notes for the dropdown
+  const availableCategories = React.useMemo(() => {
+    const categories = new Set<string>();
+    notes.forEach(note => {
+      if (note.category) {
+        categories.add(note.category);
+      }
+    });
+    return ["All Categories", ...Array.from(categories).sort()];
+  }, [notes]);
   
-  // Filter notes based on search term
-  const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Filter notes based on search term and category
+  const filteredNotes = notes.filter(note => {
+    const searchMatch = searchTerm === '' ||
+      note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+    const categoryMatch = filterCategory === '' || filterCategory === "All Categories" || note.category === filterCategory;
+      
+    return searchMatch && categoryMatch;
+  });
   
   // Sort notes by most recently updated
   const sortedNotes = [...filteredNotes].sort((a, b) => {
@@ -60,14 +79,11 @@ const NoteList: React.FC<NoteListProps> = ({
     }
   };
   
-  const getContentPreview = (content: string, maxLength: number = 120): string => {
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength).trim() + '...';
-  };
+  // Removed getContentPreview as LexicalRenderer handles preview logic
   
   return (
     <div style={styles.container}>
-      <div style={styles.searchContainer}>
+      <div style={styles.filterContainer}>
         <input
           type="text"
           placeholder="Search notes..."
@@ -75,6 +91,18 @@ const NoteList: React.FC<NoteListProps> = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           style={styles.searchInput}
         />
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          style={styles.categoryFilterSelect}
+          aria-label="Filter by category"
+        >
+          {availableCategories.map(cat => (
+            <option key={cat} value={cat === "All Categories" ? "" : cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
       </div>
       
       <div style={styles.notesList}>
@@ -109,25 +137,37 @@ const NoteList: React.FC<NoteListProps> = ({
                 )}
               </div>
               
-              <p style={styles.notePreview}>
-                {getContentPreview(note.content)}
-              </p>
+              {/* Use LexicalRenderer for content preview */}
+              <div style={styles.notePreview}>
+                 <LexicalRenderer content={note.content} previewLength={120} />
+              </div>
               
               <div style={styles.noteFooter}>
-                <span style={styles.noteDate}>
-                  {formatDate(note.updatedAt)}
-                </span>
+                <div style={styles.footerLeft}>
+                  <span style={styles.noteDate}>
+                    {formatDate(note.updatedAt)}
+                  </span>
+                  {note.relatedRecipeId && (
+                    <span style={styles.linkIndicator} title="Linked to a recipe">🔗</span>
+                  )}
+                </div>
                 
-                {note.tags && note.tags.length > 0 && (
+                <div style={styles.footerRight}>
+                  {note.tags && note.tags.length > 0 && (
                   <div style={styles.tagContainer}>
                     {note.tags.slice(0, 3).map((tag, index) => (
                       <span key={index} style={styles.tag}>{tag}</span>
                     ))}
                     {note.tags.length > 3 && (
                       <span style={styles.moreTag}>+{note.tags.length - 3}</span>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                  {/* Display Category */}
+                  {note.category && (
+                     <span style={styles.categoryDisplay}>{note.category}</span>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -135,9 +175,10 @@ const NoteList: React.FC<NoteListProps> = ({
               <div style={styles.noteHeader}>
                 <h3 style={styles.noteTitle}>{note.title}</h3>
               </div>
-              <p style={styles.notePreview}>
-                {getContentPreview(note.content)}
-              </p>
+              {/* Use LexicalRenderer for content preview */}
+               <div style={styles.notePreview}>
+                 <LexicalRenderer content={note.content} previewLength={120} />
+              </div>
             </div>
           ))
         )}
@@ -155,7 +196,9 @@ const styles = {
     maxWidth: '800px',
     margin: '0 auto',
   } as React.CSSProperties,
-  searchContainer: {
+  filterContainer: {
+    display: 'flex',
+    gap: '1rem',
     marginBottom: '1rem',
   } as React.CSSProperties,
   searchInput: {
@@ -166,6 +209,16 @@ const styles = {
     border: '1px solid #e0e0e0',
     borderRadius: '4px',
     backgroundColor: '#f9f9f9',
+    flexGrow: 1, // Allow search input to take available space
+  } as React.CSSProperties,
+  categoryFilterSelect: {
+    padding: '0.75rem',
+    fontSize: '1rem',
+    fontFamily: "'Poppins', sans-serif",
+    border: '1px solid #e0e0e0',
+    borderRadius: '4px',
+    backgroundColor: '#f9f9f9',
+    minWidth: '150px', // Give dropdown some minimum width
   } as React.CSSProperties,
   notesList: {
     display: 'flex',
@@ -209,12 +262,15 @@ const styles = {
     padding: 0,
     // Added hover effect will be better handled in actual CSS
   } as React.CSSProperties,
-  notePreview: {
+  notePreview: { // Style the container for the rendered HTML
     margin: '0.5rem 0',
     fontSize: '0.95rem',
     lineHeight: 1.5,
     color: '#555',
     fontFamily: "'Poppins', sans-serif",
+    maxHeight: '6em', // Limit preview height (approx 3-4 lines)
+    overflow: 'hidden',
+    position: 'relative', // For potential fade-out effect later
   } as React.CSSProperties,
   noteFooter: {
     display: 'flex',
@@ -222,13 +278,36 @@ const styles = {
     alignItems: 'center',
     marginTop: '0.5rem',
     fontSize: '0.8rem',
+    // alignItems: 'center', // Removed duplicate
+  } as React.CSSProperties,
+  footerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  footerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    flexWrap: 'wrap', // Allow tags/category to wrap if needed
   } as React.CSSProperties,
   noteDate: {
     color: '#888',
   } as React.CSSProperties,
+  linkIndicator: {
+    fontSize: '0.9rem',
+    cursor: 'default', // Indicate it's not clickable for now
+  } as React.CSSProperties,
   tagContainer: {
     display: 'flex',
     gap: '0.25rem',
+    flexWrap: 'wrap', // Allow tags to wrap
+  } as React.CSSProperties,
+  categoryDisplay: {
+    color: '#888',
+    fontStyle: 'italic',
+    marginLeft: 'auto', // Push category to the right
+    paddingLeft: '1rem', // Add space before category
   } as React.CSSProperties,
   tag: {
     backgroundColor: '#e8f5e9',

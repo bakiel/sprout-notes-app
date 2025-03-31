@@ -47,7 +47,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Create `Footer` component | P1 | S | DONE | Cline |
 | Implement basic routing (if needed for MVP views) | P1 | M | DONE | Template |
 | Create `LoadingIndicator` component | P1 | S | DONE | Cline |
-| Create `Notification` component/system | P1 | M | TODO | |
+| Create `Notification` component/system | P1 | M | DONE | Cline |
 | Implement responsive layout using CSS | P0 | M | DONE | Cline |
 | Implement dark/light mode toggle | P3 | M | TODO | |
 
@@ -75,13 +75,13 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
 | Verify/Implement Supabase Edge Function: `deepseek-proxy` | P0 | M | DONE | Cline |
-| Create React hook/service (`useRecipeGenerator` or `RecipeService.js`) | P0 | M | TODO | |
+| Create React hook/service (`useRecipeGenerator` or `RecipeService.js`) | P0 | M | DONE | Cline |
 | Implement API call logic within hook/service (using Supabase client) | P0 | M | DONE | Cline |
 | Implement request formatting (in hook/service) | P0 | M | DONE | Cline |
 | Implement response parsing (in hook/service) | P0 | M | DONE | Cline |
 | Add error handling and loading state management (in hook/service) | P0 | M | DONE | Cline |
 | Implement direct API fallback for when Supabase functions are unavailable | P0 | M | DONE | Cline |
-| Implement caching for Supabase function results (optional) | P1 | M | TODO | |
+| Implement caching for Supabase function results (optional) | P1 | M | DONE | Cline |
 
 ### Recipe Generation UI (React Components)
 
@@ -105,10 +105,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Implement recipe display logic within `RecipeCard` | P0 | M | DONE | Cline |
 | Create ingredients list display | P0 | M | DONE | Cline |
 | Implement step-by-step instructions display | P0 | M | DONE | Cline |
-| Add nutritional notes section display | P1 | S | TODO | |
-| Create cooking tips display | P1 | S | TODO | |
-| Implement recipe sharing functionality | P2 | M | TODO | |
-| Add print recipe feature | P2 | S | TODO | |
+| Add nutritional notes section display | P1 | S | DONE | Cline |
+| Create cooking tips display | P1 | S | DONE | Cline |
+| Implement recipe sharing functionality | P1 | M | DONE | Cline |
+| Add print recipe feature | P1 | S | DONE | Cline |
 
 ### Recipe Management
 
@@ -118,10 +118,11 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Create saved recipes view | P0 | M | DONE | Cline |
 | Add "New Recipe" button to reset form | P1 | S | DONE | Cline |
 | Implement AI-assisted recipe editing | P0 | M | DONE | Cline |
-| Create recipe deletion feature | P1 | S | TODO | |
-| Implement recipe categories | P1 | M | TODO | |
+| Create recipe deletion feature | P1 | S | DONE | Cline |
+| Implement recipe categories | P1 | M | DONE | Cline |
 | Add recipe rating system | P2 | M | DONE | Cline |
-| Create recipe export functionality | P2 | S | TODO | |
+| Create recipe export functionality | P1 | S | DONE | Cline |
+| Implement PDF download with nice formatting | P1 | M | DONE | Cline |
 | Implement recipe history tracking | P2 | M | TODO | |
 
 ---
@@ -136,7 +137,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Implement basic text editing (controlled textarea) | P0 | M | DONE | Cline |
 | Create note saving functionality (LocalStorage MVP) | P0 | M | DONE | Cline |
 | Implement note title handling | P0 | S | DONE | Cline |
-| Add rich text formatting options | P1 | L | TODO | |
+| Add rich text formatting options | P1 | L | DONE (Basic - Lexical) | Cline |
 | Implement image insertion in notes | P2 | M | TODO | |
 | Create note templates | P2 | M | TODO | |
 | Add spell-checking | P3 | M | TODO | |
@@ -147,10 +148,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 |------|----------|--------|--------|-------------|
 | Create `NoteList` component | P0 | M | DONE | Cline |
 | Create `NoteSearch` component | P1 | M | DONE | Cline |
-| Implement manual tagging system (UI + LocalStorage) | P1 | M | TODO | |
+| Implement manual tagging system (UI + LocalStorage) | P1 | M | DONE | Cline |
 | Add note sorting options (UI) | P1 | S | DONE | Cline |
-| Implement note categories (UI + LocalStorage) | P1 | M | TODO | |
-| Create note linking with recipes (UI + LocalStorage) | P1 | M | TODO | |
+| Implement note categories (UI + LocalStorage) | P1 | M | DONE | Cline |
+| Create note linking with recipes (UI + LocalStorage) | P1 | M | DONE | Cline |
 | Implement note import/export | P2 | M | TODO | |
 | Add note sharing functionality | P3 | M | TODO | |
 
@@ -233,8 +234,8 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Create service worker | P1 | L | TODO | |
-| Implement resource caching | P1 | M | TODO | |
+| Create service worker | P1 | L | DONE (Basic) | Cline |
+| Implement resource caching | P1 | M | DONE (App Shell) | Cline |
 | Create offline recipe access | P1 | M | DONE | Cline |
 | Implement sync mechanism | P2 | L | TODO | |
 | Add offline mode indicator | P2 | S | TODO | |
@@ -244,10 +245,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Create manifest.json | P1 | S | TODO | |
-| Generate app icons in all sizes | P1 | S | TODO | |
-| Implement install prompts | P1 | S | TODO | |
-| Add theme color metadata | P1 | S | TODO | |
+| Create manifest.json | P1 | S | DONE | Cline |
+| Generate app icons in all sizes | P1 | S | TODO | User/Cline |
+| Implement install prompts | P1 | S | DONE (Basic UI) | Cline |
+| Add theme color metadata | P1 | S | DONE | Cline |
 | Create splash screens | P2 | M | TODO | |
 | Implement push notifications | P3 | L | TODO | |
 

@@ -38,20 +38,23 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 ### MVP (Minimum Viable Product)
 
 1. **Recipe Generation**
-   - Input ingredients to generate recipes
-   - Basic dietary restriction filters
-   - Save generated recipes
-   - Recipe rating and review system
+   - Input ingredients to generate recipes ✅
+   - Basic dietary restriction filters ✅
+   - Save generated recipes ✅
+   - Recipe rating and review system ✅
+   - PDF download with nice formatting ✅
+   - Recipe sharing functionality ✅
 
 2. **Note-Taking**
-   - Create and save cooking notes
-   - Basic organization (tags, search)
-   - Link notes to recipes
+   - Create and save cooking notes ✅
+   - Basic rich text editing (Lexical) ✅
+   - Basic organization (tags, categories, search) ✅
+   - Link notes to recipes ✅
 
 3. **User Interface**
-   - Mobile-responsive design
-   - Simple navigation
-   - Recipe display with ingredients and instructions
+   - Mobile-responsive design ✅
+   - Simple navigation ✅
+   - Recipe display with ingredients and instructions ✅
 
 ### Phase 2 (Post-MVP)
 
@@ -73,7 +76,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 ### Phase 3 (Future Enhancements)
 
 7. **Community Features**
-   - Recipe sharing
+   - Recipe sharing ✅
    - Community collections
    - User profiles
 

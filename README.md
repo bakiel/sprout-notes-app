@@ -24,8 +24,11 @@ Sprout Notes is currently in active development with the following features impl
 - ✅ Visually appealing recipe display with step-by-step instructions
 - ✅ Recipe rating and review system with star ratings and comments
 - ✅ AI-assisted recipe editing for customizing generated recipes
+- ✅ PDF download with nice formatting for saving and printing recipes
+- ✅ Recipe sharing functionality via Web Share API
 - ✅ Basic note-taking functionality with draft auto-save
 - ✅ Supabase Edge Functions for DeepSeek (recipe generation), ElevenLabs (text-to-speech), and Gemini (image/text analysis) APIs
+- ✅ Basic Rich Text Editing for notes using Lexical
 
 Upcoming features:
 
@@ -101,6 +104,7 @@ Sprouts App/
 │   │   └── LoadingIndicator.tsx # Loading animation component
 │   ├── lib/                   # Utility functions and services
 │   │   ├── supabaseClient.ts  # Supabase client configuration
+│   │   ├── pdfUtils.ts        # PDF generation and sharing utilities
 │   │   └── api/               # Direct API clients
 │   │       └── recipeGenerator.ts # DeepSeek API client
 │   ├── routes/                # Application routes
@@ -133,6 +137,8 @@ The recipe generation feature uses the DeepSeek API to create custom vegan recip
 - **Recipe Display**: View the generated recipe with ingredients list, step-by-step instructions, and cooking information
 - **Recipe Reviews**: Rate and review recipes with a 5-star rating system and comments
 - **AI-Assisted Editing**: Edit generated recipes with AI assistance to customize them further
+- **PDF Download**: Generate and download beautifully formatted PDF versions of recipes for offline use
+- **Recipe Sharing**: Share recipes with friends via the Web Share API (text, email, social media)
 - **Flexible API Access**: Uses Supabase Edge Functions when available, with fallback to direct API access when Docker/Supabase isn't running
 
 ### Note-Taking
@@ -143,7 +149,7 @@ The note-taking feature allows users to save cooking ideas, recipe modifications
 - **Edit Notes**: Modify existing notes with automatic draft saving
 - **Delete Notes**: Remove notes you no longer need
 - **Search Notes**: Filter notes by title, content, or tags
-- **Local Storage**: All notes are saved to browser localStorage for persistence
+- **Local Storage**: All notes are saved to browser localStorage for persistence (content stored as stringified Lexical JSON)
 
 ## Security and Architecture
 

@@ -2,7 +2,20 @@ import React from 'react';
 // Import icons from react-icons later if needed
 // import { FaLeaf } from 'react-icons/fa'; 
 
-const Header: React.FC = () => {
+// Define props for install button functionality
+interface HeaderProps {
+  showInstallButton?: boolean;
+  onInstallClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ showInstallButton = false, onInstallClick }) => {
+  // In a real app, showInstallButton and onInstallClick would likely come from context or state management
+  // For now, we use props as placeholders. The actual state lives in App/root.tsx.
+  
+  // Placeholder logic to simulate receiving the state/handler (REMOVE LATER)
+  const displayInstallButton = showInstallButton; // Use prop directly
+  const handleInstall = onInstallClick; // Use prop directly
+
   return (
     <header style={styles.header}>
       <nav style={styles.nav}>
@@ -16,6 +29,14 @@ const Header: React.FC = () => {
           {/* Example Links */}
           {/* <li style={styles.navItem}><a href="#recipe-generator" style={styles.navLink}>Generator</a></li>
           <li style={styles.navItem}><a href="#notes-section" style={styles.navLink}>Notes</a></li> */}
+          {/* Conditionally render Install Button */}
+          {displayInstallButton && handleInstall && (
+             <li style={styles.navItem}>
+               <button onClick={handleInstall} style={styles.installButton}>
+                 Install App
+               </button>
+             </li>
+          )}
         </ul>
       </nav>
     </header>
@@ -61,7 +82,19 @@ const styles = {
     fontWeight: 400, // Poppins regular
     fontFamily: "'Poppins', sans-serif",
     // Add hover effect later
-  } as React.CSSProperties, // Type assertion needed for complex styles
+  } as React.CSSProperties, 
+  installButton: {
+    backgroundColor: '#8bc34a', // Light Green
+    color: '#1b5e20', // Dark Green text
+    padding: '0.5rem 1rem',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+  } as React.CSSProperties,
 };
 
 export default Header;

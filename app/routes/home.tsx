@@ -4,31 +4,21 @@ import RecipeCard from '../components/RecipeCard';
 import NoteEditor from '../components/NoteEditor';
 import NoteList from '../components/NoteList';
 import LoadingIndicator from '../components/LoadingIndicator';
+import Notification from '../components/Notification'; // Import Notification component
 import { supabase } from '../lib/supabaseClient';
-import { generateRecipe, editRecipe } from '../lib/api/recipeGenerator'; // Import direct API client
+import { editRecipe } from '../lib/api/recipeGenerator'; // Import direct API client for editing
 import type { Review } from '../components/RecipeReview';
+import type { Recipe } from '../lib/hooks/useRecipeGenerator'; // Import Recipe type from hook
 
 // Define types
-interface Recipe {
-  title: string;
-  description?: string;
-  ingredients: string[];
-  instructions: string[];
-  prepTime?: string;
-  cookTime?: string;
-  servings?: string;
-  nutritionalNotes?: string[]; // Array of nutrition facts
-  cookingTips?: string[]; // Array of helpful cooking tips
-  id?: string; // Unique identifier for the recipe
-}
-
 interface Note {
   id?: string;
   title: string;
   content: string;
   createdAt?: Date;
   updatedAt?: Date;
-  tags?: string[];
+  tags?: string[]; // Added tags field
+  category?: string; // Added category field
   relatedRecipeId?: string;
 }
 
@@ -60,9 +50,16 @@ export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditingNote, setIsEditingNote] = useState<boolean>(false);
-  
   // Reviews state
   const [recipeReviews, setRecipeReviews] = useState<{[recipeId: string]: Review[]}>({});
+  
+  // Image Generation State
+  const [recipeImage, setRecipeImage] = useState<string | null>(null); // Store as data URI
+  const [isGeneratingImage, setIsGeneratingImage] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  
+  // Notification state
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   // Load current recipe from localStorage
   useEffect(() => {
@@ -183,91 +180,29 @@ export default function Home() {
     }
     // Increment reset key to trigger form reset
     setFormResetKey(prev => prev + 1);
-    // Clear any errors
+    // Clear any errors and notifications
     setError(null);
+    setNotification(null);
+    setRecipeImage(null); // Clear image when starting new recipe
+    setImageError(null);
   };
 
-  // Function to handle recipe generation with fallback to direct API
-  const handleGenerateRecipe = async (ingredients: string, restrictions: string[], cuisineType: string, servingSize: number) => {
-    console.log("Generating recipe with:", { ingredients, restrictions, cuisineType, servingSize });
-    setIsLoading(true);
-    setError(null);
-    setCurrentRecipe(null); // Clear current recipe before generating new one
-
-    // Parse ingredients from comma-separated string to array
-    const ingredientsArray = ingredients.split(',').map(s => s.trim()).filter(Boolean);
-
-    try {
-      // First try using Supabase Edge Function
-      try {
-        console.log("Attempting to use Supabase Edge Function...");
-        const { data, error: functionError } = await supabase.functions.invoke('deepseek-proxy', {
-          body: { 
-            ingredients: ingredientsArray,
-            restrictions: restrictions,
-            cuisineType: cuisineType,
-            servingSize: servingSize
-          },
-        });
-
-        if (functionError) {
-          throw functionError;
-        }
-
-        if (!data || typeof data !== 'object' || !data.recipe) {
-          throw new Error("Invalid response format from recipe generator.");
-        }
-        
-        // Add unique ID to recipe
-        const recipeWithId = {
-          ...data.recipe as Recipe,
-          id: `recipe-${Date.now()}`
-        };
-        
-        setCurrentRecipe(recipeWithId);
-        console.log("Successfully generated recipe using Supabase Edge Function");
-        
-      } catch (supabaseError: any) {
-        // If Supabase Edge Function fails, try direct API call
-        console.error("Error calling Supabase function:", supabaseError);
-        console.log("Falling back to direct API call...");
-        
-        // Call DeepSeek API directly as a fallback
-        const recipeData = await generateRecipe({
-          ingredients: ingredientsArray,
-          restrictions: restrictions,
-          cuisineType: cuisineType,
-          servingSize: servingSize
-        });
-        
-        // Add unique ID to recipe
-        const recipeWithId = {
-          ...recipeData,
-          id: `recipe-${Date.now()}`
-        };
-        
-        setCurrentRecipe(recipeWithId);
-        console.log("Successfully generated recipe using direct API call");
+  // Handle deleting a saved recipe
+  const handleDeleteRecipe = (recipeIdToDelete: string) => {
+    setSavedRecipes(prev => prev.filter(recipe => recipe.id !== recipeIdToDelete));
+    // Optionally, if the deleted recipe is the currently viewed one, clear it
+    if (currentRecipe?.id === recipeIdToDelete) {
+      setCurrentRecipe(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(CURRENT_RECIPE_STORAGE_KEY);
       }
-    } catch (err: any) {
-      // If both methods fail, use mock data
-      console.error("All recipe generation methods failed:", err);
-      setError(`Failed to generate recipe: ${err.message || 'Unknown error'}. Using mock data.`);
-      
-      // Fallback to Mock Data
-      await new Promise(resolve => setTimeout(resolve, 500)); // Short delay for fallback
-      const cuisinePrefix = cuisineType ? `${cuisineType.charAt(0).toUpperCase() + cuisineType.slice(1)} ` : '';
-      const mockRecipe: Recipe = {
-        title: `${cuisinePrefix}Mock Tofu Scramble (Fallback)`,
-        description: `Could not reach the AI chef! Here's a basic ${cuisineType || 'vegan'} scramble.`,
-        ingredients: ["1 block firm tofu, pressed", "1 tbsp nutritional yeast", "1/2 tsp turmeric", "Salt and pepper", `Your ingredients: ${ingredients}`],
-        instructions: ["Crumble tofu.", "Sauté with spices.", "Serve hot."],
-        servings: servingSize ? `${servingSize}` : "2",
-        id: `recipe-${Date.now()}`
-      };
-      setCurrentRecipe(mockRecipe);
-    } finally {
-      setIsLoading(false);
+    }
+    setNotification({ message: 'Recipe deleted successfully!', type: 'info' });
+    console.log("Recipe deleted:", recipeIdToDelete);
+    // Also clear image if the deleted recipe was the current one
+    if (currentRecipe?.id === recipeIdToDelete) {
+       setRecipeImage(null);
+       setImageError(null);
     }
   };
 
@@ -333,9 +268,12 @@ export default function Home() {
         setCurrentRecipe(editedRecipe);
         console.log("Successfully edited recipe using direct API call");
       }
+      setNotification({ message: 'Recipe edited successfully!', type: 'success' });
     } catch (err: any) {
       console.error("Recipe editing failed:", err);
-      setError(`Failed to edit recipe: ${err.message || 'Unknown error'}`);
+      const errorMsg = `Failed to edit recipe: ${err.message || 'Unknown error'}`;
+      setError(errorMsg);
+      setNotification({ message: errorMsg, type: 'error' });
     } finally {
       setIsLoading(false);
       setIsEditingRecipe(false);
@@ -351,13 +289,15 @@ export default function Home() {
     }
     
     // Check if recipe already exists (check by ID if available, otherwise by title)
-    if (!savedRecipes.some(r => (r.id && recipeToSave.id && r.id === recipeToSave.id) || r.title === recipeToSave.title)) {
+    const alreadyExists = savedRecipes.some(r => (r.id && recipeToSave.id && r.id === recipeToSave.id) || r.title === recipeToSave.title);
+    
+    if (!alreadyExists) {
       setSavedRecipes(prev => [...prev, recipeToSave]);
-      // Optionally provide user feedback (e.g., using a notification system)
+      setNotification({ message: 'Recipe saved successfully!', type: 'success' });
       console.log("Recipe saved:", recipeToSave.title);
     } else {
+      setNotification({ message: 'Recipe is already saved.', type: 'info' });
       console.log("Recipe already saved:", recipeToSave.title);
-      // Optionally provide feedback that it's already saved
     }
   };
   
@@ -381,7 +321,7 @@ export default function Home() {
       updatedReviews[recipeId] = [newReview, ...updatedReviews[recipeId]];
       return updatedReviews;
     });
-    
+    setNotification({ message: 'Review submitted!', type: 'success' });
     console.log(`Review submitted for recipe ${recipeId}: ${rating} stars`);
   };
 
@@ -400,7 +340,7 @@ export default function Home() {
       };
       setNotes(prevNotes => [...prevNotes, newNote]);
     }
-    
+    setNotification({ message: note.id ? 'Note updated!' : 'Note saved!', type: 'success' });
     setSelectedNote(null);
     setIsEditingNote(false);
   };
@@ -408,6 +348,7 @@ export default function Home() {
   // Handle deleting a note
   const handleDeleteNote = (noteId: string) => {
     setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+    setNotification({ message: 'Note deleted.', type: 'info' });
   };
   
   // Handle note selection
@@ -428,18 +369,68 @@ export default function Home() {
     setIsEditingNote(false);
   };
 
+  // Handle generating an image for the current recipe
+  const handleGenerateImage = async (recipeTitle: string) => {
+    if (!recipeTitle) return;
+
+    console.log(`Generating image for: ${recipeTitle}`);
+    setIsGeneratingImage(true);
+    setImageError(null);
+    setRecipeImage(null); // Clear previous image
+    setNotification({ message: 'Generating recipe image...', type: 'info' });
+
+    try {
+      const { data, error: functionError } = await supabase.functions.invoke('imagen-proxy', {
+        // Ensure the body matches what the function expects
+        body: { prompt: `A beautifully plated vegan ${recipeTitle}, shot in natural light with a vintage, nostalgic tone. Soft colours, slight grain, retro photography style.` }, 
+      });
+
+      if (functionError) {
+        console.error("Imagen proxy function error:", functionError);
+        throw new Error(functionError.message || 'Failed to call image generation function.');
+      }
+
+      // Assuming the function returns { base64Image: "..." }
+      if (data && typeof data.base64Image === 'string') {
+        const imageUrl = `data:image/png;base64,${data.base64Image}`;
+        setRecipeImage(imageUrl);
+        setNotification({ message: 'Image generated successfully!', type: 'success' });
+        // Persist image? Maybe link to recipe in localStorage? For now, just display.
+      } else {
+        console.error("Invalid response format from imagen-proxy:", data);
+        throw new Error('Received invalid data from image generation function.');
+      }
+
+    } catch (err: any) {
+      console.error("Image generation failed:", err);
+      const errorMsg = `Failed to generate image: ${err.message || 'Unknown error'}`;
+      setImageError(errorMsg);
+      setNotification({ message: errorMsg, type: 'error' });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+
   return (
     // Removed inline style, relying on .app-container from root.tsx
     <main> 
       <section id="recipe-generator" style={styles.section}>
         <h2>Generate a Recipe</h2>
-        {/* Pass handleGenerateRecipe and resetKey to the form component */}
+        {/* Use the new props for the form component */}
         <RecipeGeneratorForm 
-          onGenerate={handleGenerateRecipe} 
+          onRecipeGenerated={setCurrentRecipe} 
+          onLoadingChange={setIsLoading}     
+          onError={(errMsg) => { // Use callback to set error and notification
+            setError(errMsg);
+            if (errMsg) {
+              setNotification({ message: errMsg, type: 'error' });
+            }
+          }}
           resetKey={formResetKey}
         /> 
-        {/* Display error message if any */}
-        {error && <p style={{ color: 'red', marginTop: '1rem' }}>Error: {error}</p>}
+        {/* Error display is now handled by the notification system */}
+        {/* {error && <p style={{ color: 'red', marginTop: '1rem' }}>Error: {error}</p>} */}
       </section>
 
       <section id="recipe-display" style={styles.section}>
@@ -493,6 +484,10 @@ export default function Home() {
                 onEdit={handleEditRecipe}
                 reviews={currentRecipe?.id ? recipeReviews[currentRecipe.id] || [] : []}
                 onSubmitReview={handleSubmitReview}
+                // Pass image generation props
+                imageUrl={recipeImage}
+                isGeneratingImage={isGeneratingImage}
+                onGenerateImage={handleGenerateImage}
               />
             )
           )}
@@ -508,13 +503,25 @@ export default function Home() {
           <div style={styles.savedRecipesList}>
             {savedRecipes.map((savedRecipe, index) => (
               <div key={savedRecipe.id || index} style={styles.savedRecipeItem}>
-                <span>{savedRecipe.title}</span>
-                <button 
-                  onClick={() => setCurrentRecipe(savedRecipe)}
+                <span style={styles.savedRecipeTitle}>
+                  {savedRecipe.title}
+                  {savedRecipe.category && <span style={styles.categoryTag}>{savedRecipe.category}</span>}
+                </span>
+                <div style={styles.savedRecipeButtons}>
+                  <button 
+                    onClick={() => setCurrentRecipe(savedRecipe)}
                   style={styles.viewRecipeButton}
                 >
-                  View Recipe
+                  View
                 </button>
+                <button
+                  onClick={() => handleDeleteRecipe(savedRecipe.id!)} // Assuming ID always exists here
+                  style={styles.deleteRecipeButton}
+                  aria-label={`Delete ${savedRecipe.title}`}
+                >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -534,7 +541,8 @@ export default function Home() {
         
         {isEditingNote ? (
           <NoteEditor 
-            initialNote={selectedNote || undefined} // Pass undefined if null
+            initialNote={selectedNote || undefined} 
+            currentRecipeId={currentRecipe?.id} // Pass current recipe ID
             onSave={handleSaveNote}
             onCancel={handleCancelEdit}
           />
@@ -546,6 +554,15 @@ export default function Home() {
           />
         )}
       </section>
+      
+      {/* Render Notification component */}
+      {notification && (
+        <Notification 
+          message={notification.message} 
+          type={notification.type} 
+          onClose={() => setNotification(null)} 
+        />
+      )}
     </main>
   );
 }
@@ -575,6 +592,25 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
   } as React.CSSProperties,
+  savedRecipeTitle: {
+    flexGrow: 1, // Allow title to take up available space
+    marginRight: '1rem', // Add space between title and buttons
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  categoryTag: {
+    backgroundColor: '#e0e0e0', // Grey background
+    color: '#555',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '10px',
+    fontSize: '0.75rem',
+    fontWeight: 500,
+  } as React.CSSProperties,
+  savedRecipeButtons: {
+    display: 'flex',
+    gap: '0.5rem', // Space between view and delete buttons
+  } as React.CSSProperties,
   viewRecipeButton: {
     backgroundColor: '#e8f5e9',
     color: '#2e7d32',
@@ -584,6 +620,17 @@ const styles = {
     fontSize: '0.8rem',
     fontWeight: 600,
     cursor: 'pointer',
+  } as React.CSSProperties,
+  deleteRecipeButton: {
+    backgroundColor: '#ffebee', // Light Red
+    color: '#c62828', // Red text
+    border: '1px solid #ef9a9a',
+    borderRadius: '4px',
+    padding: '0.3rem 0.6rem',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginLeft: '0.5rem', // Add some space between buttons
   } as React.CSSProperties,
   notesSection: {
     marginTop: '3rem', 

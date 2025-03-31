@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import useRecipeGenerator from '../lib/hooks/useRecipeGenerator'; // Import the hook
+import type { GenerateRecipeParams, Recipe } from '../lib/hooks/useRecipeGenerator'; // Import types separately
 
 // Define props interface
 interface RecipeGeneratorFormProps {
-  onGenerate: (ingredients: string, restrictions: string[], cuisineType: string, servingSize: number) => void;
+  onRecipeGenerated: (recipe: Recipe | null) => void; // Callback for when a recipe is generated
+  onLoadingChange: (isLoading: boolean) => void; // Callback for loading state changes
+  onError: (error: string | null) => void; // Callback for errors
   resetKey?: number; // Optional key to force re-render and reset form
 }
 
-const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate, resetKey = 0 }) => {
+const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ 
+  onRecipeGenerated, 
+  onLoadingChange, 
+  onError, 
+  resetKey = 0 
+}) => {
+  // Use the custom hook
+  const { recipe, isLoading, error, generateRecipe } = useRecipeGenerator();
+
   const [ingredients, setIngredients] = useState('');
   const [restrictions, setRestrictions] = useState<string[]>([]);
   const [cuisineType, setCuisineType] = useState('');
@@ -28,6 +40,19 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate, r
   useEffect(() => {
     checkFormValidity();
   }, [ingredients]);
+
+  // Propagate state changes from the hook to the parent component
+  useEffect(() => {
+    onRecipeGenerated(recipe);
+  }, [recipe, onRecipeGenerated]);
+
+  useEffect(() => {
+    onLoadingChange(isLoading);
+  }, [isLoading, onLoadingChange]);
+
+  useEffect(() => {
+    onError(error);
+  }, [error, onError]);
 
   // Reset form when resetKey changes
   useEffect(() => {
@@ -65,8 +90,18 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate, r
     }
     
     console.log("Form submitted successfully");
-    // Call the onGenerate prop passed from the parent component
-    onGenerate(ingredients, restrictions, cuisineType, servingSize);
+    
+    // Prepare parameters for the hook
+    const params: GenerateRecipeParams = {
+      // Split ingredients string into an array, trimming whitespace and filtering empty strings
+      ingredients: ingredients.split(',').map(ing => ing.trim()).filter(ing => ing.length > 0),
+      dietaryRestrictions: restrictions,
+      cuisineType: cuisineType || undefined, // Pass undefined if empty
+      servingSize: servingSize,
+    };
+    
+    // Call the generateRecipe function from the hook
+    generateRecipe(params);
   };
 
   return (
@@ -194,7 +229,7 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ onGenerate, r
         disabled={!isValid}
         onClick={() => console.log("Button clicked, isValid:", isValid)}
       >
-        Generate Recipe
+        {isLoading ? 'Generating...' : 'Generate Recipe'}
       </button>
     </form>
   );
@@ -304,7 +339,7 @@ const styles = {
     fontFamily: "'Montserrat', sans-serif",
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
+    transition: 'all 0.2s ease', // Include opacity transition
     // Add hover style later: '&:hover': { backgroundColor: '#1b5e20' }
   } as React.CSSProperties,
 };
