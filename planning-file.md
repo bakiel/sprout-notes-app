@@ -41,6 +41,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
    - Input ingredients to generate recipes
    - Basic dietary restriction filters
    - Save generated recipes
+   - Recipe rating and review system
 
 2. **Note-Taking**
    - Create and save cooking notes
@@ -101,6 +102,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 
 - **Platform**: Supabase
 - **API Proxies**: Supabase Edge Functions (TypeScript) for secure API access
+- **Direct API Access**: Fallback mechanism when Supabase/Docker isn't available
 - **Database**: Supabase PostgreSQL (optional, for user data/saved recipes)
 - **Authentication**: Supabase Auth (optional, for user accounts)
 - **Security**: API keys managed via Supabase environment variables, Row Level Security (RLS) if using database.
@@ -109,7 +111,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 
 1. **DeepSeek API**
    - Purpose: Generate custom vegan recipes
-   - Implementation: Supabase Edge Function proxy for security
+   - Implementation: Supabase Edge Function proxy for security with direct API fallback
    - Key features used: Recipe generation based on ingredients and preferences
 
 2. **ElevenLabs API**
@@ -259,7 +261,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 | API cost escalation | High | Medium | Implement usage tracking, caching, and rate limiting |
 | Performance issues on mobile | Medium | Medium | Mobile-first development, performance testing |
 | User privacy concerns | High | Low | Clear privacy policy, minimal data collection |
-| API service disruption | High | Low | Implement fallback modes, graceful degradation |
+| API service disruption | High | Low | Implemented direct API fallback when Supabase Edge Functions are unavailable |
 | Browser compatibility issues | Medium | Medium | Cross-browser testing, feature detection |
 
 ## Success Metrics

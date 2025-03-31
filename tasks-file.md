@@ -36,7 +36,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Initialize Supabase project (`supabase init`) | P0 | S | DONE | Cline |
 | Link Supabase project (`supabase link`) | P0 | S | DONE | Cline |
 | Configure Supabase local env vars (`supabase/.env.local`) | P0 | S | DONE | Cline |
-| Set up Supabase local dev (`supabase start`) | P0 | M | BLOCKED | Docker Issue |
+| Set up Supabase local dev (`supabase start`) | P0 | M | DONE | Cline |
 
 ### Core UI Implementation (React Components)
 
@@ -46,25 +46,25 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Create `Header` component | P0 | M | DONE | Cline |
 | Create `Footer` component | P1 | S | DONE | Cline |
 | Implement basic routing (if needed for MVP views) | P1 | M | DONE | Template |
-| Create `LoadingIndicator` component | P1 | S | TODO | |
+| Create `LoadingIndicator` component | P1 | S | DONE | Cline |
 | Create `Notification` component/system | P1 | M | TODO | |
-| Implement responsive layout using CSS | P0 | M | TODO | |
+| Implement responsive layout using CSS | P0 | M | DONE | Cline |
 | Implement dark/light mode toggle | P3 | M | TODO | |
 
 ### Authentication & User Data (Post-MVP - Requires Supabase Auth/DB)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Design Supabase DB schema (users, recipes, notes) | P2 | M | TODO | |
-| Implement Supabase DB migrations | P2 | M | TODO | |
-| Set up Supabase RLS policies | P2 | L | TODO | |
+| Design Supabase DB schema (users, recipes, notes) | P2 | M | DONE | Cline |
+| Implement Supabase DB migrations | P2 | M | DONE | Cline |
+| Set up Supabase RLS policies | P2 | L | DONE | Cline |
 | Implement Supabase Auth UI (login/signup) | P2 | M | TODO | |
 | Configure Supabase Auth providers | P2 | S | TODO | |
 | Implement user profile UI (linked to Supabase) | P2 | M | TODO | |
 | Implement data sync between LocalStorage and Supabase DB | P2 | L | TODO | |
 *Note: MVP uses LocalStorage only.*
-| Implement local storage for user data (MVP) | P0 | M | TODO | |
-| Set up user preferences storage (LocalStorage - MVP) | P0 | S | TODO | |
+| Implement local storage for user data (MVP) | P0 | M | DONE | Cline |
+| Set up user preferences storage (LocalStorage - MVP) | P0 | S | DONE | Cline |
 
 ---
 
@@ -74,12 +74,13 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Verify/Implement Supabase Edge Function: `deepseek-proxy` | P0 | M | TODO | |
+| Verify/Implement Supabase Edge Function: `deepseek-proxy` | P0 | M | DONE | Cline |
 | Create React hook/service (`useRecipeGenerator` or `RecipeService.js`) | P0 | M | TODO | |
 | Implement API call logic within hook/service (using Supabase client) | P0 | M | DONE | Cline |
 | Implement request formatting (in hook/service) | P0 | M | DONE | Cline |
 | Implement response parsing (in hook/service) | P0 | M | DONE | Cline |
 | Add error handling and loading state management (in hook/service) | P0 | M | DONE | Cline |
+| Implement direct API fallback for when Supabase functions are unavailable | P0 | M | DONE | Cline |
 | Implement caching for Supabase function results (optional) | P1 | M | TODO | |
 
 ### Recipe Generation UI (React Components)
@@ -89,20 +90,21 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Create `RecipeGeneratorForm` component | P0 | M | DONE | Cline |
 | Implement ingredient input field (controlled component) | P0 | M | DONE | Cline |
 | Create dietary restriction toggles/checkboxes | P0 | S | DONE | Cline |
-| Implement cuisine type selector | P0 | S | TODO | |
-| Create serving size adjuster | P1 | S | TODO | |
+| Implement cuisine type selector | P0 | S | DONE | Cline |
+| Create serving size adjuster | P1 | S | DONE | Cline |
 | Implement form state management (e.g., `useState`) | P0 | M | DONE | Cline |
 | Implement form submission logic (calls hook/service) | P0 | M | DONE | Cline |
-| Implement form validation | P1 | M | TODO | |
+| Implement form validation | P1 | M | DONE | Cline |
 
 ### Recipe Display (React Components)
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
 | Create `RecipeCard` component | P0 | M | DONE | Cline |
+| Create `RecipeReview` component | P0 | M | DONE | Cline |
 | Implement recipe display logic within `RecipeCard` | P0 | M | DONE | Cline |
 | Create ingredients list display | P0 | M | DONE | Cline |
-| Implement step-by-step instructions display | P0 | M | TODO | |
+| Implement step-by-step instructions display | P0 | M | DONE | Cline |
 | Add nutritional notes section display | P1 | S | TODO | |
 | Create cooking tips display | P1 | S | TODO | |
 | Implement recipe sharing functionality | P2 | M | TODO | |
@@ -112,12 +114,13 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Implement recipe saving (LocalStorage MVP) | P0 | M | TODO | |
-| Create saved recipes view | P0 | M | TODO | |
+| Implement recipe saving (LocalStorage MVP) | P0 | M | DONE | Cline |
+| Create saved recipes view | P0 | M | DONE | Cline |
+| Add "New Recipe" button to reset form | P1 | S | DONE | Cline |
 | Implement recipe editing | P1 | M | TODO | |
 | Create recipe deletion feature | P1 | S | TODO | |
 | Implement recipe categories | P1 | M | TODO | |
-| Add recipe rating system | P2 | M | TODO | |
+| Add recipe rating system | P2 | M | DONE | Cline |
 | Create recipe export functionality | P2 | S | TODO | |
 | Implement recipe history tracking | P2 | M | TODO | |
 
@@ -129,10 +132,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Create `NoteEditor` component | P0 | M | TODO | |
-| Implement basic text editing (controlled textarea) | P0 | M | TODO | |
-| Create note saving functionality (LocalStorage MVP) | P0 | M | TODO | |
-| Implement note title handling | P0 | S | TODO | |
+| Create `NoteEditor` component | P0 | M | DONE | Cline |
+| Implement basic text editing (controlled textarea) | P0 | M | DONE | Cline |
+| Create note saving functionality (LocalStorage MVP) | P0 | M | DONE | Cline |
+| Implement note title handling | P0 | S | DONE | Cline |
 | Add rich text formatting options | P1 | L | TODO | |
 | Implement image insertion in notes | P2 | M | TODO | |
 | Create note templates | P2 | M | TODO | |
@@ -142,10 +145,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Create `NoteList` component | P0 | M | TODO | |
-| Create `NoteSearch` component | P1 | M | TODO | |
+| Create `NoteList` component | P0 | M | DONE | Cline |
+| Create `NoteSearch` component | P1 | M | DONE | Cline |
 | Implement manual tagging system (UI + LocalStorage) | P1 | M | TODO | |
-| Add note sorting options (UI) | P1 | S | TODO | |
+| Add note sorting options (UI) | P1 | S | DONE | Cline |
 | Implement note categories (UI + LocalStorage) | P1 | M | TODO | |
 | Create note linking with recipes (UI + LocalStorage) | P1 | M | TODO | |
 | Implement note import/export | P2 | M | TODO | |
@@ -155,7 +158,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Verify/Implement Supabase Edge Function: `gemini-proxy` (for text) | P2 | M | TODO | |
+| Verify/Implement Supabase Edge Function: `gemini-proxy` (for text) | P2 | M | DONE | Cline |
 | Create frontend NoteAnalysisService (calls Supabase func) | P2 | M | TODO | |
 | Implement note analysis functionality (in frontend service) | P2 | M | TODO | |
 | Implement auto-tagging from content (using service) | P2 | M | TODO | |
@@ -171,7 +174,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Verify/Implement Supabase Edge Function: `elevenlabs-proxy` | P2 | M | TODO | |
+| Verify/Implement Supabase Edge Function: `elevenlabs-proxy` | P2 | M | DONE | Cline |
 | Create frontend AudioService class (calls Supabase func) | P2 | M | TODO | |
 | Implement text-to-speech conversion (in frontend service) | P2 | M | TODO | |
 | Implement audio playback (frontend) | P2 | M | TODO | |
@@ -213,7 +216,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Verify/Implement Supabase Edge Function: `gemini-proxy` (for images) | P2 | M | TODO | |
+| Verify/Implement Supabase Edge Function: `gemini-proxy` (for images) | P2 | M | DONE | Cline |
 | Create frontend VisionService class (calls Supabase func) | P2 | M | TODO | |
 | Create image preprocessing (frontend) | P2 | M | TODO | |
 | Implement ingredient recognition (using service) | P2 | L | TODO | |
@@ -232,10 +235,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 |------|----------|--------|--------|-------------|
 | Create service worker | P1 | L | TODO | |
 | Implement resource caching | P1 | M | TODO | |
-| Create offline recipe access | P1 | M | TODO | |
+| Create offline recipe access | P1 | M | DONE | Cline |
 | Implement sync mechanism | P2 | L | TODO | |
 | Add offline mode indicator | P2 | S | TODO | |
-| Create offline data storage strategy | P2 | M | TODO | |
+| Create offline data storage strategy | P2 | M | DONE | Cline |
 
 ### PWA Integration
 
@@ -280,10 +283,10 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Configure Supabase secrets/env variables | P0 | S | TODO | |
-| Configure CORS in Supabase Edge Functions | P0 | S | TODO | |
-| Add input sanitization (frontend/backend) | P0 | M | TODO | |
-| Implement Row Level Security (RLS) if using Supabase DB | P1 | L | TODO | |
+| Configure Supabase secrets/env variables | P0 | S | DONE | Cline |
+| Configure CORS in Supabase Edge Functions | P0 | S | DONE | Cline |
+| Add input sanitization (frontend/backend) | P0 | M | DONE | Cline |
+| Implement Row Level Security (RLS) if using Supabase DB | P1 | L | DONE | Cline |
 | Create Content Security Policy (frontend) | P1 | M | TODO | |
 | Implement rate limiting (Supabase function level, optional) | P1 | M | TODO | |
 | Add HTTPS enforcement (handled by Supabase/hosting) | P1 | S | DONE | |
@@ -313,11 +316,11 @@ This document outlines the specific tasks required to implement the Sprout Notes
 
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
-| Create README.md | P0 | S | TODO | |
-| Write technical documentation | P0 | L | TODO | |
+| Create README.md | P0 | S | DONE | Cline |
+| Write technical documentation | P0 | L | DONE | Cline |
 | Create user guide | P1 | M | TODO | |
-| Document frontend-Supabase function interaction | P1 | M | TODO | |
-| Document Supabase setup and architecture | P1 | M | TODO | |
+| Document frontend-Supabase function interaction | P1 | M | DONE | Cline |
+| Document Supabase setup and architecture | P1 | M | DONE | Cline |
 | Create developer onboarding guide | P2 | M | TODO | |
 | Document known issues and workarounds | P2 | S | TODO | |
 | Create FAQ | P2 | M | TODO | |

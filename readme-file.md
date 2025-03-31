@@ -12,7 +12,7 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
 
 ### Key Features
 
-- 🧠 **AI Recipe Generation**: Create custom vegan recipes based on your available ingredients, dietary needs, and preferences
+- 🧠 **AI Recipe Generation**: Create custom vegan recipes based on your available ingredients, dietary needs, and preferences, with rating and review capabilities
 - 📷 **Image Recognition**: Identify ingredients from photos to get instant recipe suggestions
 - 🔊 **Voice Narration**: Listen to recipes being read aloud while you cook
 - 📝 **Smart Note Organization**: Keep your cooking ideas organized with AI-categorized notes
@@ -105,6 +105,14 @@ sprout-notes-app/ (or Sprouts App/)
 ├── src/                       # React source code
 │   ├── assets/                # Frontend assets (images, etc.) processed by Vite
 │   ├── components/            # Reusable React UI components
+│   │   ├── RecipeCard.tsx     # Recipe display component
+│   │   ├── RecipeReview.tsx   # Recipe rating and review component
+│   │   ├── RecipeGeneratorForm.tsx # Recipe input form
+│   │   ├── Header.tsx         # Application header
+│   │   ├── Footer.tsx         # Application footer
+│   │   ├── NoteEditor.tsx     # Note editing component
+│   │   ├── NoteList.tsx       # Note listing component
+│   │   └── LoadingIndicator.tsx # Loading animation component
 │   ├── services/              # Frontend services interacting with Supabase
 │   ├── App.css                # Main App component styles
 │   ├── App.jsx                # Main React App component
@@ -136,6 +144,7 @@ Sprout Notes uses the DeepSeek API via a Supabase Edge Function to generate cust
 - Select dietary restrictions (gluten-free, oil-free, nut-free, soy-free)
 - Choose cuisine preferences
 - Specify meal type and serving size
+- Rate and review recipes with a 5-star rating system and comments
 
 ### Image Recognition
 
