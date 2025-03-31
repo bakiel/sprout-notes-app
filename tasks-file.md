@@ -117,7 +117,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Implement recipe saving (LocalStorage MVP) | P0 | M | DONE | Cline |
 | Create saved recipes view | P0 | M | DONE | Cline |
 | Add "New Recipe" button to reset form | P1 | S | DONE | Cline |
-| Implement recipe editing | P1 | M | TODO | |
+| Implement AI-assisted recipe editing | P0 | M | TODO | Cline |
 | Create recipe deletion feature | P1 | S | TODO | |
 | Implement recipe categories | P1 | M | TODO | |
 | Add recipe rating system | P2 | M | DONE | Cline |

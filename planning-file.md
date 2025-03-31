@@ -138,7 +138,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 3. User selects dietary restrictions and preferences
 4. System sends request to DeepSeek API
 5. System displays generated recipe
-6. User can save, edit, or regenerate the recipe
+6. User can save, edit with AI assistance, or regenerate the recipe
 
 ### Image Recognition Flow
 

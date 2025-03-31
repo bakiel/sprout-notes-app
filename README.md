@@ -23,6 +23,7 @@ Sprout Notes is currently in active development with the following features impl
 - ✅ Recipe generation with ingredient input, dietary restriction toggles, and cuisine type selection
 - ✅ Visually appealing recipe display with step-by-step instructions
 - ✅ Recipe rating and review system with star ratings and comments
+- ✅ AI-assisted recipe editing for customizing generated recipes
 - ✅ Basic note-taking functionality with draft auto-save
 - ✅ Supabase Edge Functions for DeepSeek (recipe generation), ElevenLabs (text-to-speech), and Gemini (image/text analysis) APIs
 
@@ -131,6 +132,7 @@ The recipe generation feature uses the DeepSeek API to create custom vegan recip
 - **Cuisine Type**: Choose from various cuisine styles (Asian, Mediterranean, Mexican, etc.)
 - **Recipe Display**: View the generated recipe with ingredients list, step-by-step instructions, and cooking information
 - **Recipe Reviews**: Rate and review recipes with a 5-star rating system and comments
+- **AI-Assisted Editing**: Edit generated recipes with AI assistance to customize them further
 - **Flexible API Access**: Uses Supabase Edge Functions when available, with fallback to direct API access when Docker/Supabase isn't running
 
 ### Note-Taking

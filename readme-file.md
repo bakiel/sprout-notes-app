@@ -145,6 +145,7 @@ Sprout Notes uses the DeepSeek API via a Supabase Edge Function to generate cust
 - Choose cuisine preferences
 - Specify meal type and serving size
 - Rate and review recipes with a 5-star rating system and comments
+- Edit generated recipes with AI assistance to customize them further
 
 ### Image Recognition
 
