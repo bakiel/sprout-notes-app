@@ -42,8 +42,13 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
    - Basic dietary restriction filters ✅
    - Save generated recipes ✅
    - Recipe rating and review system ✅
-   - PDF download with nice formatting ✅
-   - Recipe sharing functionality ✅
+   - PDF download with nice formatting (dynamic height, button exclusion) ✅ 
+   - Recipe sharing functionality (Web Share API) ✅
+   - Multi-tier recipe image system: ✅
+     - AI-enhanced descriptions for better image searches ✅
+     - Food-specific Unsplash queries ✅
+     - Robust fallback to vegetable/fruit images ✅
+     - Branded PDFs with proper logo integration ✅
 
 2. **Note-Taking**
    - Create and save cooking notes ✅
@@ -54,7 +59,13 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 3. **User Interface**
    - Mobile-responsive design ✅
    - Simple navigation ✅
-   - Recipe display with ingredients and instructions ✅
+   - Recipe display with ingredients and instructions (Improved layout w/ image placeholder) ✅
+   - Complete PWA Setup ✅
+     - Web App Manifest with proper metadata ✅
+     - Service Worker with app shell caching ✅
+     - Comprehensive icon set for all platforms ✅
+     - iOS/Android metadata for optimal installation ✅
+     - Install prompt UI ✅
 
 ### Phase 2 (Post-MVP)
 
@@ -72,6 +83,7 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
    - AI-based categorization
    - Smart tagging
    - Advanced search and filters
+   - Meal Type filter for recipe generation
 
 ### Phase 3 (Future Enhancements)
 
@@ -113,9 +125,9 @@ Sprout Notes aims to be the go-to application for vegan cooking enthusiasts, com
 ### External APIs
 
 1. **DeepSeek API**
-   - Purpose: Generate custom vegan recipes
+   - Purpose: Generate custom vegan recipes & visual descriptions
    - Implementation: Supabase Edge Function proxy for security with direct API fallback
-   - Key features used: Recipe generation based on ingredients and preferences
+   - Key features used: Recipe generation based on ingredients and preferences, visual food descriptions for better image searching
 
 2. **ElevenLabs API**
    - Purpose: Text-to-speech for recipe narration

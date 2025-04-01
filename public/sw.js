@@ -10,9 +10,15 @@ const APP_SHELL_URLS = [
   '/app.css', // Assuming global styles are here
   '/manifest.json',
   '/favicon.ico',
-  // Add paths to icons if they are separate files
-  '/icons/icon-192x192.png', 
+  // App icons for various sizes 
+  '/icons/icon-48x48.png',
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png',
   // Add font files if needed (check network tab after build)
   // e.g., 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Poppins:wght@400&display=swap'
   // e.g., 'https://fonts.gstatic.com/s/...' (actual font files)

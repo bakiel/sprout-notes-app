@@ -15,6 +15,7 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
 - 🎨 **Modern UI Experience**: Clean, intuitive interface for recipe generation and note-taking
 - 💾 **Offline Persistence**: Save recipes and notes locally for easy access, even without an internet connection
 - 🔄 **Flexible API Integration**: Direct API fallback when Supabase Edge Functions aren't available
+- 📱 **Progressive Web App**: Installable on mobile and desktop platforms for an app-like experience
 
 ## Development Status
 
@@ -160,6 +161,55 @@ The note-taking feature allows users to save cooking ideas, recipe modifications
 - **Local Storage**: Client-side data persistence with localStorage
 - **Fallback Mechanisms**: Graceful degradation when services are unavailable
 - **Error Handling**: Comprehensive error handling with user-friendly fallbacks
+
+## Enhanced Recipe Images
+
+Sprout Notes features a robust multi-tier image system for recipe images:
+
+### Recipe Image Generation
+
+- **AI-Enhanced Descriptions**: Uses DeepSeek to generate detailed visual descriptions of recipes based on ingredients and title
+- **Smart Search Queries**: Converts descriptions into optimized image search queries
+- **Multi-Tier Fallback System**:
+  1. Primary: Targeted Unsplash image search with AI-enhanced descriptions
+  2. Secondary: Specialized food-specific queries focused on fresh vegetables and fruits
+  3. Fallback: Curated set of healthy food categories that always yield appetizing images
+  4. Final: App icon as absolute last resort if all external sources fail
+- **Relevant Results**: Always displays food-related images, even without API access
+
+### Branded PDF Export
+
+- **Professional Presentation**: Recipe PDFs include the Sprout Notes logo and branding
+- **Proper Formatting**: Maintains correct aspect ratios and proportions
+- **Clean Layout**: Automatic header and footer with app information
+- **Dynamic Sizing**: Adjusts to content length automatically
+
+## Progressive Web App Features
+
+### Installation
+
+- **Mobile Devices**: Install Sprout Notes on your home screen from Safari (iOS) or Chrome (Android)
+- **Desktop**: Install as a standalone application on Windows, macOS, or Linux using Chrome, Edge, or other compatible browsers
+
+### Offline Capabilities
+
+- Service worker caches app shell for offline access
+- LocalStorage persists recipes and notes for offline viewing
+- Works without an internet connection once installed
+
+### App Icons
+
+The app includes a comprehensive set of icons for all platforms:
+- Favicons for browser tabs (16×16 to 48×48)
+- Apple Touch Icons for iOS home screens
+- Android icons in various sizes (48×48 to 512×512)
+- Properly configured Web App Manifest for optimal display on all devices
+
+### PWA Metadata
+
+- Theme color and background color defined for consistent branding
+- Proper viewport settings for mobile devices
+- iOS/Android specific meta tags for optimal home screen experience
 
 ## Next Steps
 

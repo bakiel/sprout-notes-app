@@ -16,8 +16,17 @@ interface RecipeEditRequestBody {
   action: 'edit';
 }
 
+// Interface for recipe description request body (for image search)
+interface RecipeDescriptionRequestBody {
+  recipe: {
+    title: string;
+    ingredients: string[];
+  };
+  action: 'describe';
+}
+
 // Combined request body type
-type RequestBody = RecipeGenerationRequestBody | RecipeEditRequestBody;
+type RequestBody = RecipeGenerationRequestBody | RecipeEditRequestBody | RecipeDescriptionRequestBody;
 
 // Interface for the recipe response
 interface Recipe {
@@ -44,6 +53,11 @@ function isRecipeEditRequest(request: any): request is RecipeEditRequestBody {
   return request && request.action === 'edit' && request.recipe && request.editInstructions;
 }
 
+// Helper function to determine if the request is for recipe description (for image search)
+function isRecipeDescriptionRequest(request: any): request is RecipeDescriptionRequestBody {
+  return request && request.action === 'describe' && request.recipe && request.recipe.title;
+}
+
 serve(async (req) => {
   // Handle CORS preflight request
   const corsResponse = handleCors(req);
@@ -63,10 +77,30 @@ serve(async (req) => {
     // Parse request JSON
     const requestData: RequestBody = await req.json();
     
-    // Determine if this is a recipe edit request or a recipe generation request
+    // Determine which type of request this is: recipe editing, food description, or recipe generation
     let prompt: string;
+    let isDescriptionRequest = false;
     
-    if (isRecipeEditRequest(requestData)) {
+    if (isRecipeDescriptionRequest(requestData)) {
+      // Food description request for image search
+      const { recipe } = requestData;
+      
+      // Craft prompt for detailed food description
+      prompt = `Please describe in detail what a vegan dish called "${recipe.title}" would look like visually. 
+The dish uses these main ingredients: ${recipe.ingredients.join(', ')}. 
+
+Your description should be detailed enough to be used as an image search query. Focus on:
+1. Colors and appearance (vibrant, colorful, rustic, etc.)
+2. Textures visible in the dish
+3. How it's plated or served
+4. Garnishes or toppings
+5. The overall presentation
+
+Provide a single paragraph description (60-80 words) that would help someone find a beautiful, appetizing image of this dish. The description should be specific to vegan food photography. Don't include any cooking instructions or tastes, just focus on the visual aspects.`;
+
+      console.log("Calling DeepSeek API for food description of:", recipe.title);
+      isDescriptionRequest = true;
+    } else if (isRecipeEditRequest(requestData)) {
       // Recipe editing request
       const { recipe, editInstructions } = requestData;
       
@@ -178,23 +212,38 @@ Return the modified recipe in the same JSON format with all the same fields. Pre
       throw new Error("Invalid response from DeepSeek API: Missing content");
     }
 
-    try {
-      // Parse JSON from DeepSeek response
-      // Sometimes DeepSeek might include markdown backticks for JSON, so we need to handle that
-      const jsonStr = content.replace(/```json|```/g, '').trim();
-      const recipeData = JSON.parse(jsonStr) as Recipe;
-
-      // Return the recipe data
+    // Handle differently based on request type
+    if (isDescriptionRequest) {
+      // For food description requests, we want plain text, not JSON
+      const description = content.trim();
+      console.log("Food description generated:", description);
+      
+      // Return the description as plain text
       return addCorsHeaders(
-        new Response(JSON.stringify({ recipe: recipeData }), {
+        new Response(JSON.stringify({ description }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         })
       );
-    } catch (jsonError) {
-      console.error("Error parsing DeepSeek response:", jsonError);
-      console.error("Response content:", content);
-      throw new Error("Failed to parse recipe data from DeepSeek API");
+    } else {
+      try {
+        // Parse JSON from DeepSeek response
+        // Sometimes DeepSeek might include markdown backticks for JSON, so we need to handle that
+        const jsonStr = content.replace(/```json|```/g, '').trim();
+        const recipeData = JSON.parse(jsonStr) as Recipe;
+
+        // Return the recipe data
+        return addCorsHeaders(
+          new Response(JSON.stringify({ recipe: recipeData }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          })
+        );
+      } catch (jsonError) {
+        console.error("Error parsing DeepSeek response:", jsonError);
+        console.error("Response content:", content);
+        throw new Error("Failed to parse recipe data from DeepSeek API");
+      }
     }
   } catch (error) {
     console.error("Error processing request:", error);

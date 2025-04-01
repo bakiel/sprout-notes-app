@@ -2,6 +2,33 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 /**
+ * Preloads an image and returns it as a data URL
+ * @param url - URL of the image to load
+ * @returns Promise resolving to the image data URL
+ */
+const preloadImage = async (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";  // Handle CORS issues
+    img.onload = () => {
+      // Create canvas to convert to data URL
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => reject(new Error(`Failed to load image from ${url}`));
+    img.src = url;
+  });
+};
+
+/**
  * Generates a PDF from a recipe card element and downloads it
  * @param recipeCardElement - The DOM element of the recipe card to convert to PDF
  * @param recipeName - The name of the recipe for the PDF filename
@@ -23,8 +50,18 @@ export const generateRecipePDF = async (
     if (imageGenButton) imageGenButton.style.display = 'none';
     if (actionButtons) actionButtons.style.display = 'none';
 
-    // Add a small delay to ensure styles are applied before capture (optional, might help)
+    // Add a small delay to ensure styles are applied before capture
     await new Promise(resolve => setTimeout(resolve, 50)); 
+
+    // Load logo image in advance - we'll use the favicon to avoid distortion
+    let logoDataUrl: string;
+    try {
+      // Use the favicon which has better proportions for the header
+      logoDataUrl = await preloadImage('/icons/icon-48x48.png');
+    } catch (logoError) {
+      console.warn('Could not load logo for PDF, using text-only header', logoError);
+      logoDataUrl = ''; // Empty if logo loading fails
+    }
 
     // Create a canvas from the recipe card element
     const canvas = await html2canvas(recipeCardElement, {
@@ -39,7 +76,9 @@ export const generateRecipePDF = async (
     const pdfWidth = 210; // A4 width in mm
     const margin = 15; // Increased margin
     const contentWidth = pdfWidth - 2 * margin;
-    const titleHeight = 15; // Estimated space for title + top margin
+    
+    // Set heights based on whether we have a logo
+    const headerHeight = logoDataUrl ? 25 : 15; // More space for header with logo
     const footerHeight = 15; // Estimated space for footer line + text + bottom margin
     
     // Calculate proportional image dimensions based on contentWidth
@@ -47,7 +86,7 @@ export const generateRecipePDF = async (
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
     // Calculate required page height
-    const pageHeight = titleHeight + imgHeight + footerHeight; 
+    const pageHeight = headerHeight + imgHeight + footerHeight; 
     
     // Center the image horizontally
     const xPos = margin; // Place image starting at left margin
@@ -55,17 +94,40 @@ export const generateRecipePDF = async (
     // Create PDF with custom dimensions
     const pdf = new jsPDF('p', 'mm', [pdfWidth, pageHeight]);
     
-    // Add title 
-    pdf.setFontSize(18); 
-    pdf.setTextColor(46, 125, 50); 
-    pdf.text(recipeName, pdfWidth / 2, margin + 5, { align: 'center' }); // Position title within top margin
+    // Add logo and title in header
+    if (logoDataUrl) {
+      // Add the app logo as a header image (left aligned)
+      const logoSize = 10; // 10mm square logo
+      pdf.addImage(
+        logoDataUrl,
+        'PNG',
+        margin,
+        margin - 2, // Slight adjustment to vertical position
+        logoSize,
+        logoSize
+      );
+      
+      // Title - positioned to the right of logo
+      pdf.setFontSize(16); 
+      pdf.setTextColor(46, 125, 50); // Green color to match brand
+      pdf.text(
+        recipeName, 
+        margin + logoSize + 5, // Leave 5mm space after logo
+        margin + 5, // Center text vertically with logo
+      );
+    } else {
+      // Fallback: text-only centered title if logo fails
+      pdf.setFontSize(18); 
+      pdf.setTextColor(46, 125, 50); 
+      pdf.text(recipeName, pdfWidth / 2, margin + 5, { align: 'center' });
+    }
     
-    // Add the recipe image (position below title area)
+    // Add the recipe image (position below header area)
     pdf.addImage(
       canvas.toDataURL('image/png'),
       'PNG',
       xPos, 
-      titleHeight, // Start image below the title area
+      headerHeight, // Start image below the header area
       imgWidth,
       imgHeight
     );
@@ -75,7 +137,7 @@ export const generateRecipePDF = async (
     pdf.setDrawColor(200, 200, 200); 
     pdf.line(margin, footerLineY, pdfWidth - margin, footerLineY); 
 
-    // Add footer text
+    // Add footer text with app name and tagline
     pdf.setFontSize(9); 
     pdf.setTextColor(150, 150, 150); 
     pdf.text('Generated by Sprout Notes 🌱 - Ideas That Grow', pdfWidth / 2, footerLineY + 5, { align: 'center' }); 

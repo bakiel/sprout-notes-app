@@ -10,6 +10,8 @@ interface RecipeGeneratorFormProps {
   resetKey?: number; // Optional key to force re-render and reset form
 }
 
+const MEAL_TYPES = ["Any", "Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Side Dish", "Main Course"];
+
 const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({ 
   onRecipeGenerated, 
   onLoadingChange, 
@@ -22,6 +24,7 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({
   const [ingredients, setIngredients] = useState('');
   const [restrictions, setRestrictions] = useState<string[]>([]);
   const [cuisineType, setCuisineType] = useState('');
+  const [mealType, setMealType] = useState<string>(''); // Added state for meal type
   const [servingSize, setServingSize] = useState<number>(2); // Default to 2 servings
   
   // Simple validation state
@@ -61,6 +64,7 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({
       setIngredients('');
       setRestrictions([]);
       setCuisineType('');
+      setMealType(''); // Reset meal type
       setServingSize(2);
       setIsValid(false);
     }
@@ -96,7 +100,8 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({
       // Split ingredients string into an array, trimming whitespace and filtering empty strings
       ingredients: ingredients.split(',').map(ing => ing.trim()).filter(ing => ing.length > 0),
       dietaryRestrictions: restrictions,
-      cuisineType: cuisineType || undefined, // Pass undefined if empty
+      cuisineType: cuisineType || undefined, 
+      mealType: mealType && mealType !== "Any" ? mealType : undefined, // Pass mealType if selected
       servingSize: servingSize,
     };
     
@@ -177,14 +182,31 @@ const RecipeGeneratorForm: React.FC<RecipeGeneratorFormProps> = ({
         style={styles.select}
       >
         <option value="">Any Cuisine</option>
+        <option value="african">African</option> 
+        <option value="american">American</option>
         <option value="asian">Asian</option>
-        <option value="mediterranean">Mediterranean</option>
-        <option value="mexican">Mexican</option>
         <option value="indian">Indian</option>
         <option value="italian">Italian</option>
+        <option value="mediterranean">Mediterranean</option>
+        <option value="mexican">Mexican</option>
         <option value="middle-eastern">Middle Eastern</option>
-        <option value="american">American</option>
-        <option value="african">African</option>
+      </select>
+
+      <label htmlFor="mealType" style={styles.label}>
+        Meal Type (Optional):
+      </label>
+      <select
+        id="mealType"
+        name="mealType"
+        value={mealType}
+        onChange={(e) => setMealType(e.target.value)}
+        style={styles.select}
+      >
+        {MEAL_TYPES.map(type => (
+          <option key={type} value={type === "Any" ? "" : type}>
+            {type}
+          </option>
+        ))}
       </select>
       
       {/* Serving Size Adjuster */}

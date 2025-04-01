@@ -22,6 +22,7 @@ interface GenerateRecipeParams {
   ingredients: string[];
   dietaryRestrictions?: string[];
   cuisineType?: string;
+  mealType?: string; // Added mealType
   servingSize?: number;
 }
 
@@ -48,6 +49,7 @@ const createCacheKey = (params: GenerateRecipeParams): string => {
     params.ingredients.slice().sort().join(','), // Sort ingredients for consistency
     params.dietaryRestrictions?.slice().sort().join(',') || '',
     params.cuisineType || '',
+    params.mealType || '', // Include mealType in cache key
     params.servingSize?.toString() || '',
   ];
   // Simple hash function (djb2) - not cryptographically secure, but fine for cache keys
@@ -104,6 +106,7 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
             ingredients: params.ingredients,
             dietary_restrictions: params.dietaryRestrictions,
             cuisine_type: params.cuisineType,
+            meal_type: params.mealType, // Pass mealType to function
             serving_size: params.servingSize,
           },
         }
@@ -136,6 +139,7 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
           ingredients: params.ingredients,
           restrictions: params.dietaryRestrictions || [],
           cuisineType: params.cuisineType,
+          mealType: params.mealType, // Pass mealType to direct API call
           servingSize: params.servingSize,
         };
         generatedRecipe = await generateRecipeDirectly(directApiParams);

@@ -82,6 +82,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Add error handling and loading state management (in hook/service) | P0 | M | DONE | Cline |
 | Implement direct API fallback for when Supabase functions are unavailable | P0 | M | DONE | Cline |
 | Implement caching for Supabase function results (optional) | P1 | M | DONE | Cline |
+| Add DeepSeek 'describe' action for improved image searching | P1 | M | DONE | Cline |
 
 ### Recipe Generation UI (React Components)
 
@@ -95,6 +96,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Implement form state management (e.g., `useState`) | P0 | M | DONE | Cline |
 | Implement form submission logic (calls hook/service) | P0 | M | DONE | Cline |
 | Implement form validation | P1 | M | DONE | Cline |
+| Add Meal Type filter | P1 | S | DONE | Cline |
 
 ### Recipe Display (React Components)
 
@@ -213,6 +215,16 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Add image editing/cropping tools | P3 | L | TODO | |
 | Implement multi-image upload | P3 | M | TODO | |
 
+### Recipe Image Generation & Fallback System
+
+| Task | Priority | Effort | Status | Assigned To |
+|------|----------|--------|--------|-------------|
+| Implement recipe image search from Unsplash | P2 | M | DONE | Cline |
+| Create multi-tier image fallback system | P1 | M | DONE | Cline |
+| Implement food-specific queries for relevant images | P1 | S | DONE | Cline |
+| Add branded PDF export with logo | P1 | S | DONE | Cline |
+| Fix aspect ratio issues in PDF exports | P1 | S | DONE | Cline |
+
 ### Gemini Integration for Images (via Supabase Function)
 
 | Task | Priority | Effort | Status | Assigned To |
@@ -246,7 +258,7 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Task | Priority | Effort | Status | Assigned To |
 |------|----------|--------|--------|-------------|
 | Create manifest.json | P1 | S | DONE | Cline |
-| Generate app icons in all sizes | P1 | S | TODO | User/Cline |
+| Generate app icons in all sizes | P1 | S | DONE | Cline |
 | Implement install prompts | P1 | S | DONE (Basic UI) | Cline |
 | Add theme color metadata | P1 | S | DONE | Cline |
 | Create splash screens | P2 | M | TODO | |

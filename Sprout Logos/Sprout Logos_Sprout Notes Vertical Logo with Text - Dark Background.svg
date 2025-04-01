@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 241.01 314.61">
+  <defs>
+    <style>
+      .cls-1 {
+        font-family: Poppins-Regular, Poppins;
+        font-size: 14px;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #8bc34a;
+      }
+
+      .cls-1, .cls-3 {
+        isolation: isolate;
+      }
+
+      .cls-2, .cls-4 {
+        stroke-linejoin: round;
+      }
+
+      .cls-2, .cls-5, .cls-6 {
+        stroke-width: 8px;
+      }
+
+      .cls-2, .cls-6 {
+        stroke: #fff;
+      }
+
+      .cls-4 {
+        fill: #333;
+        stroke-width: 10px;
+      }
+
+      .cls-4, .cls-5 {
+        stroke: #8bc34a;
+      }
+
+      .cls-3 {
+        fill: #fff;
+        font-family: Poppins-SemiBold, Poppins;
+        font-size: 32px;
+        font-weight: 600;
+      }
+
+      .cls-5, .cls-6 {
+        stroke-linecap: round;
+      }
+    </style>
+  </defs>
+  <path class="cls-4" d="m61.38,14.68c-13.2,0-24,10.8-24,24v152c0,13.2,10.8,24,24,24h126c13.2,0,24-10.8,24-24V38.68c0-13.2-10.8-24-24-24H61.38Z"/>
+  <path class="cls-5" d="m61.38,44.68h-20"/>
+  <path class="cls-5" d="m61.38,74.68h-20"/>
+  <path class="cls-5" d="m61.38,104.68h-20"/>
+  <path class="cls-5" d="m61.38,134.68h-20"/>
+  <path class="cls-5" d="m61.38,164.68h-20"/>
+  <path class="cls-5" d="m61.38,194.68h-20"/>
+  <path class="cls-2" d="m144.38,174.68c-40,0-70-30-70-70s30-70,70-70v140Z"/>
+  <path class="cls-6" d="m109.38,139.68l35-35"/>
+  <path class="cls-6" d="m144.38,174.68v20"/>
+  <text class="cls-3" transform="translate(19.76 264.68)"><tspan x="0" y="0">Sprout Notes</tspan></text>
+  <text class="cls-1" transform="translate(62.39 294.68)"><tspan x="0" y="0">IDEAS THAT GROW</tspan></text>
+</svg>

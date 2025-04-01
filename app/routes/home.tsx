@@ -373,39 +373,151 @@ export default function Home() {
   const handleGenerateImage = async (recipeTitle: string) => {
     if (!recipeTitle) return;
 
-    console.log(`Generating image for: ${recipeTitle}`);
+    console.log(`Getting image for: ${recipeTitle}`);
     setIsGeneratingImage(true);
     setImageError(null);
     setRecipeImage(null); // Clear previous image
-    setNotification({ message: 'Generating recipe image...', type: 'info' });
+    setNotification({ message: 'Fetching recipe image...', type: 'info' });
 
     try {
-      const { data, error: functionError } = await supabase.functions.invoke('imagen-proxy', {
-        // Ensure the body matches what the function expects
-        body: { prompt: `A beautifully plated vegan ${recipeTitle}, shot in natural light with a vintage, nostalgic tone. Soft colours, slight grain, retro photography style.` }, 
-      });
+      // First try to get a detailed visual description from DeepSeek
+      let enhancedQuery = "";
+      let source = "standard";
+      
+      try {
+        // Only attempt this if we have a current recipe with ingredients to describe
+        if (currentRecipe?.ingredients) {
+          console.log("Attempting to get food description from DeepSeek...");
+          const { data, error: functionError } = await supabase.functions.invoke('deepseek-proxy', {
+            body: { 
+              action: 'describe',
+              recipe: {
+                title: recipeTitle,
+                ingredients: currentRecipe.ingredients
+              }
+            }
+          });
 
-      if (functionError) {
-        console.error("Imagen proxy function error:", functionError);
-        throw new Error(functionError.message || 'Failed to call image generation function.');
+          if (functionError) throw functionError;
+          
+          if (data && typeof data.description === 'string' && data.description.length > 10) {
+            enhancedQuery = data.description;
+            source = "enhanced";
+            console.log("Got enhanced food description:", enhancedQuery);
+          }
+        }
+      } catch (descriptionError) {
+        console.warn("Could not get enhanced description from DeepSeek:", descriptionError);
+        // Continue with standard query - don't rethrow
       }
-
-      // Assuming the function returns { base64Image: "..." }
-      if (data && typeof data.base64Image === 'string') {
-        const imageUrl = `data:image/png;base64,${data.base64Image}`;
+      
+      // Build search query - use enhanced version if available, otherwise build from recipe title
+      const searchQuery = enhancedQuery || 
+        `fresh vegetables fruits colorful healthy food dish vegan ${recipeTitle.replace(/stir[\s-]fry|curry|soup|salad/gi, '')}`;
+      
+      const encodedQuery = encodeURIComponent(searchQuery);
+      console.log("Using search query:", searchQuery);
+      
+      // Try multiple image sources in sequence for better reliability
+      let imageUrl: string | null = null;
+      
+      try {
+        // Primary source: Unsplash (no API key required) - focus on fruits and vegetables
+        const unsplashUrl = `https://source.unsplash.com/random/800x600/?${encodedQuery}`;
+        const unsplashResponse = await fetch(unsplashUrl, { method: 'GET' });
+        
+        if (unsplashResponse.ok && unsplashResponse.url) {
+          imageUrl = unsplashResponse.url;
+        } else {
+          throw new Error("Unsplash source failed");
+        }
+      } catch (primaryError) {
+        console.warn("Primary image source failed, trying backup source", primaryError);
+        source = "backup";
+        
+        // Try with a simplified query focused just on ingredients
+        const backupQuery = encodeURIComponent(`vegan food vegetables fruits ${
+          currentRecipe?.ingredients?.slice(0, 3).join(' ') || 'healthy'
+        }`);
+        
+        try {
+          // Try Unsplash again with simplified query and a more specific query for food
+          const simpleUnsplashUrl = `https://source.unsplash.com/random/800x600/?fresh+colorful+vegetables+fruits+${
+            currentRecipe?.ingredients?.slice(0, 2).join('+')}`;
+          const backupResponse = await fetch(simpleUnsplashUrl, { method: 'GET' });
+          
+          if (backupResponse.ok && backupResponse.url) {
+            imageUrl = backupResponse.url;
+          } else {
+            throw new Error("Backup Unsplash source failed");
+          }
+        } catch (backupError) {
+          console.warn("Backup Unsplash failed, trying food-specific Unsplash", backupError);
+          
+          // Last attempt: Explicitly use categories that always have vegetables/fruits
+          try {
+            // These specific queries almost always yield vegetable/fruit images
+            const foodCategories = [
+              'fresh+vegetables+plate',
+              'colorful+vegan+dish',
+              'healthy+plant+based',
+              'fresh+fruit+salad',
+              'vegetable+cutting+board',
+              'green+smoothie+bowl'
+            ];
+            // Pick a category based on recipe title or randomly
+            const categoryIndex = Math.floor(Math.random() * foodCategories.length);
+            const category = foodCategories[categoryIndex];
+            
+            const finalUrl = `https://source.unsplash.com/featured/?${category}`;
+            const finalResponse = await fetch(finalUrl, { method: 'GET' });
+            
+            if (finalResponse.ok && finalResponse.url) {
+              imageUrl = finalResponse.url;
+            } else {
+              throw new Error("All Unsplash attempts failed");
+            }
+          } catch (finalError) {
+            console.warn("All image sources failed, using local fallback", finalError);
+            // We don't set imageUrl here, so it will use the app icon as fallback
+          }
+        }
+      }
+      
+      // Simulate a small delay for better UX if we got the image quickly
+      if (Date.now() - performance.now() < 500) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      
+      // Set the image URL
+      if (imageUrl) {
         setRecipeImage(imageUrl);
-        setNotification({ message: 'Image generated successfully!', type: 'success' });
-        // Persist image? Maybe link to recipe in localStorage? For now, just display.
+        setNotification({ 
+          message: `Image fetched successfully${
+            source === "enhanced" ? " (with AI-enhanced description)" : 
+            source === "backup" ? " (using backup source)" : ""
+          }!`, 
+          type: 'success' 
+        });
       } else {
-        console.error("Invalid response format from imagen-proxy:", data);
-        throw new Error('Received invalid data from image generation function.');
+        // If all sources fail, use a placeholder veggie image
+        // Use our logo as the absolute last resort
+        setRecipeImage("/icons/icon-192x192.png");
+        setImageError("Could not fetch food image, using placeholder");
+        setNotification({ 
+          message: "Using placeholder image - external image sources unavailable", 
+          type: 'info' 
+        });
       }
-
     } catch (err: any) {
-      console.error("Image generation failed:", err);
-      const errorMsg = `Failed to generate image: ${err.message || 'Unknown error'}`;
-      setImageError(errorMsg);
-      setNotification({ message: errorMsg, type: 'error' });
+      console.error("All image sources failed:", err);
+      // Final fallback - use our app icon as a placeholder
+      setRecipeImage("/icons/icon-192x192.png");
+      setImageError(`Could not fetch image: ${err.message || 'Unknown error'}`);
+      setNotification({ 
+        message: "Using placeholder image - please try again later", 
+        type: 'info' 
+      });
     } finally {
       setIsGeneratingImage(false);
     }

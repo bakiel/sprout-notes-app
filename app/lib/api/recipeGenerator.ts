@@ -6,6 +6,7 @@ export interface RecipeRequest {
   ingredients: string[];
   restrictions: string[];
   cuisineType?: string;
+  mealType?: string; // Added mealType
   servingSize?: number;
 }
 
@@ -129,7 +130,7 @@ Return the modified recipe in the same JSON format with all the same fields. Pre
  * This is a fallback for when Supabase Edge Functions aren't available (e.g., Docker not running)
  */
 export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
-  const { ingredients, restrictions, cuisineType } = request;
+  const { ingredients, restrictions, cuisineType, mealType } = request; // Destructure mealType
   
   // Validate request data
   if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
@@ -148,10 +149,14 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
   const servingSizeText = request.servingSize
     ? ` Make the recipe for ${request.servingSize} servings.`
     : "";
+    
+  const mealTypeText = mealType 
+    ? ` It should be suitable for ${mealType}.` 
+    : "";
 
   const prompt = `Generate a vegan recipe using these ingredients: ${ingredients.join(
     ", "
-  )}.${restrictionsText}${cuisineText}${servingSizeText} The recipe should be delicious, practical, and suitable for home cooking. Format the response as a JSON object with these fields: title, description, ingredients (as an array), instructions (as an array of steps), nutritionalNotes (as an array of nutrition facts), and cookingTips (as an array of helpful tips). Each step should be clear and detailed. Include nutritional information like calories, protein, carbs, and fat estimates. Also include 3-5 cooking tips specific to this recipe. You may add small amounts of common ingredients not listed if needed for a complete recipe.`;
+  )}.${restrictionsText}${cuisineText}${mealTypeText}${servingSizeText} The recipe should be delicious, practical, and suitable for home cooking. Format the response as a JSON object with these fields: title, description, ingredients (as an array), instructions (as an array of steps), nutritionalNotes (as an array of nutrition facts), and cookingTips (as an array of helpful tips). Each step should be clear and detailed. Include nutritional information like calories, protein, carbs, and fat estimates. Also include 3-5 cooking tips specific to this recipe. You may add small amounts of common ingredients not listed if needed for a complete recipe.`;
 
   console.log("Calling DeepSeek API directly with prompt:", prompt);
 

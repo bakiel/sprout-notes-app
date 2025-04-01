@@ -197,10 +197,36 @@ Ensure production environment variables (API keys, Supabase URL/Key) are set cor
 
 Sprout Notes is implemented as a Progressive Web App, providing:
 
-- Offline capabilities
-- Home screen installation
-- App-like experience
-- Push notifications (where supported)
+- Offline capabilities via service worker caching
+- Home screen installation on mobile and desktop
+- App-like experience with full-screen mode
+- Complete branding with custom icons for all platforms
+- Push notifications (future enhancement)
+
+### PWA Installation
+
+Sprout Notes can be installed on various devices for an app-like experience:
+
+**On Mobile (iOS/Android):**
+1. Open Sprout Notes in your browser (Safari on iOS, Chrome on Android)
+2. On iOS: Tap the Share button, then "Add to Home Screen"
+3. On Android: Tap the three-dot menu, then "Install app" or "Add to Home Screen"
+
+**On Desktop (Windows/macOS/Linux):**
+1. Open Sprout Notes in a compatible browser (Chrome, Edge, etc.)
+2. Look for the install icon in the address bar, or use the browser menu
+3. Click "Install" to add the app to your desktop
+
+### Icon System
+
+Sprout Notes uses a comprehensive set of icons to ensure proper display across all platforms:
+
+- **Favicon Icons**: Multiple sizes (16×16 to 48×48) for browser tabs and bookmarks
+- **Apple Touch Icons**: Specially formatted icons for iOS home screens
+- **Android Icons**: Maskable icons in various sizes (48×48 to 512×512) for Android devices
+- **Windows Tiles**: Support for Windows OS tiles and start menu
+
+All icons are stored in the `/public/icons/` directory and are referenced in both the `manifest.json` and HTML metadata.
 
 ## Contributing
 

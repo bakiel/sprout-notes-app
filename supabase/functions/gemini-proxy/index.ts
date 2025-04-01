@@ -3,12 +3,15 @@ import { corsHeaders, handleCors, addCorsHeaders } from "../_shared/cors.ts";
 
 // Interface for Gemini request body
 interface GeminiRequest {
-  // For text-only requests
+  // Request type
+  task?: 'generateText' | 'analyzeImage' | 'generateImage';
+  
+  // For text-only or image generation requests
   text?: string;
+  prompt?: string; // Used for image generation or analysis
   
   // For image analysis
   imageBase64?: string;
-  prompt?: string; // The prompt to use with the image
   
   // Common options
   temperature?: number;
@@ -40,14 +43,25 @@ serve(async (req) => {
 
     // Parse request JSON
     const requestData: GeminiRequest = await req.json();
-    const { text, imageBase64, prompt, temperature = 0.7, maxTokens = 1024 } = requestData;
+    const { text, imageBase64, prompt, temperature = 0.7, maxTokens = 1024, task } = requestData;
 
-    // Check if we're doing a text-only or image analysis request
-    const isImageRequest = !!imageBase64;
+    // Determine the task type
+    let taskType = task;
+    if (!taskType) {
+      // Default task type based on provided parameters
+      if (imageBase64) {
+        taskType = 'analyzeImage';
+      } else if (prompt && !text) {
+        taskType = 'generateImage';
+      } else {
+        taskType = 'generateText';
+      }
+    }
 
-    if (!isImageRequest && (!text || typeof text !== "string" || text.length === 0)) {
+    // Validate input based on task type
+    if (taskType === 'generateText' && (!text || typeof text !== "string" || text.length === 0)) {
       return new Response(
-        JSON.stringify({ error: "Invalid request: text must be a non-empty string" }),
+        JSON.stringify({ error: "Invalid request: text must be a non-empty string for text generation" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -55,9 +69,19 @@ serve(async (req) => {
       );
     }
 
-    if (isImageRequest && (!prompt || typeof prompt !== "string" || prompt.length === 0)) {
+    if (taskType === 'analyzeImage' && (!imageBase64 || !prompt || typeof prompt !== "string")) {
       return new Response(
-        JSON.stringify({ error: "Invalid request: prompt is required for image analysis" }),
+        JSON.stringify({ error: "Invalid request: imageBase64 and prompt are required for image analysis" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    
+    if (taskType === 'generateImage' && (!prompt || typeof prompt !== "string")) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request: prompt is required for image generation" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -65,12 +89,17 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Calling Gemini API for ${isImageRequest ? "image analysis" : "text generation"}`);
+    console.log(`Calling Gemini API for ${taskType}`);
 
     // Construct the API endpoint URL
-    const apiEndpoint = isImageRequest 
-      ? "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent"
-      : "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    let apiEndpoint;
+    if (taskType === 'analyzeImage') {
+      apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent";
+    } else if (taskType === 'generateImage') {
+      apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    } else {
+      apiEndpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    }
     
     const url = `${apiEndpoint}?key=${apiKey}`;
 
@@ -88,8 +117,8 @@ serve(async (req) => {
       }
     };
 
-    // Add the appropriate content parts based on request type
-    if (isImageRequest) {
+    // Add the appropriate content parts based on task type
+    if (taskType === 'analyzeImage') {
       // For image analysis, we need to add both the image and a text prompt
       requestBody.contents[0].parts.push(
         {
@@ -97,15 +126,27 @@ serve(async (req) => {
         },
         {
           inlineData: {
-            mimeType: "image/jpeg", // Assuming JPEG for simplicity, could be more dynamic
+            mimeType: "image/jpeg", // Assuming JPEG for simplicity
             data: imageBase64
           }
         }
       );
+    } else if (taskType === 'generateImage') {
+      // For image generation, include a detailed prompt
+      const imagePrompt = `Create a high-quality, realistic image of: ${prompt}. The image should be detailed, visually appealing, and suitable for a recipe visualization.`;
+      requestBody.contents[0].parts.push({
+        text: imagePrompt
+      });
+      
+      // Add specific configuration for image generation
+      requestBody.generationConfig.temperature = 0.4; // Lower temperature for more predictable results
+      requestBody.generationConfig.topP = 1;
+      requestBody.generationConfig.topK = 32;
+      requestBody.generationConfig.maxOutputTokens = 2048;
     } else {
       // For text-only requests
       requestBody.contents[0].parts.push({
-        text
+        text: text || prompt
       });
     }
 
@@ -133,22 +174,55 @@ serve(async (req) => {
     const geminiData = await geminiResponse.json();
     console.log("Gemini response received:", JSON.stringify(geminiData, null, 2));
 
-    // Extract the response content
-    const responseContent = geminiData.candidates?.[0]?.content;
-    if (!responseContent) {
-      throw new Error("Invalid response from Gemini API: Missing content");
-    }
+    // Process response based on task type
+    if (taskType === 'generateImage') {
+      // For image generation, extract the image data from the response
+      // The structure depends on the specific model response format
+      const parts = geminiData.candidates?.[0]?.content?.parts;
+      let base64Image = null;
+      
+      if (parts && parts.length > 0) {
+        // Look for an image part in the response
+        for (const part of parts) {
+          if (part.inlineData && part.inlineData.data) {
+            base64Image = part.inlineData.data;
+            break;
+          }
+        }
+      }
+      
+      if (!base64Image) {
+        console.error("No image data found in response:", JSON.stringify(geminiData));
+        throw new Error("Image generation failed: No image data in response");
+      }
+      
+      // Return the base64 image data in the same format as the imagen-proxy function
+      return addCorsHeaders(
+        new Response(JSON.stringify({ 
+          base64Image: base64Image
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+    } else {
+      // For text generation and image analysis
+      const responseContent = geminiData.candidates?.[0]?.content;
+      if (!responseContent) {
+        throw new Error("Invalid response from Gemini API: Missing content");
+      }
 
-    // Return the processed data
-    return addCorsHeaders(
-      new Response(JSON.stringify({ 
-        response: responseContent,
-        rawResponse: geminiData 
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      })
-    );
+      // Return the processed data
+      return addCorsHeaders(
+        new Response(JSON.stringify({ 
+          response: responseContent,
+          rawResponse: geminiData 
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        })
+      );
+    }
   } catch (error) {
     console.error("Error processing request:", error);
 
