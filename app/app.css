@@ -1342,6 +1342,23 @@ footer a:hover {
 }
 
 /* ==========================================================================
+   PDF Export Mode - Ensures images are not squashed when generating PDFs
+   ========================================================================== */
+
+.pdf-export-mode .recipe-card__image {
+  object-fit: contain !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  max-width: 100%;
+}
+
+.pdf-export-mode .recipe-card__image-container {
+  aspect-ratio: auto !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+/* ==========================================================================
    Archive Page Styles
    ========================================================================== */
 

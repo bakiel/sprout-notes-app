@@ -53,6 +53,9 @@ export const generateRecipePDF = async (
     if (imageGenButton) imageGenButton.style.display = 'none';
     if (actionButtons) actionButtons.style.display = 'none';
 
+    // Add PDF export class for proper image rendering
+    recipeCardElement.classList.add('pdf-export-mode');
+
     // Add a small delay to ensure styles are applied before capture
     await new Promise(resolve => setTimeout(resolve, 50)); 
 
@@ -154,6 +157,8 @@ export const generateRecipePDF = async (
     // Restore original styles
     if (imageGenButton && originalImageBtnStyle !== undefined) imageGenButton.style.display = originalImageBtnStyle;
     if (actionButtons && originalActionBtnsStyle !== undefined) actionButtons.style.display = originalActionBtnsStyle;
+    // Remove PDF export class
+    recipeCardElement.classList.remove('pdf-export-mode');
   }
 };
 
