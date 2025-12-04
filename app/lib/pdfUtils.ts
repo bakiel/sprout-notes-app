@@ -1,6 +1,9 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+// Get base URL for assets (handles GitHub Pages deployment)
+const baseUrl = import.meta.env.BASE_URL || '/';
+
 /**
  * Preloads an image and returns it as a data URL
  * @param url - URL of the image to load
@@ -57,7 +60,7 @@ export const generateRecipePDF = async (
     let logoDataUrl: string;
     try {
       // Use the favicon which has better proportions for the header
-      logoDataUrl = await preloadImage('/icons/icon-48x48.png');
+      logoDataUrl = await preloadImage(`${baseUrl}icons/icon-48x48.png`);
     } catch (logoError) {
       console.warn('Could not load logo for PDF, using text-only header', logoError);
       logoDataUrl = ''; // Empty if logo loading fails
@@ -155,6 +158,15 @@ export const generateRecipePDF = async (
 };
 
 /**
+ * Converts a data URL to a File object
+ */
+const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], filename, { type: blob.type });
+};
+
+/**
  * Shares a recipe using the Web Share API if available,
  * or falls back to copying a link to clipboard
  * @param recipe - The recipe object to share
@@ -167,14 +179,28 @@ export const shareRecipe = async (
   const url = shareUrl || window.location.href;
   const title = `Sprout Notes: ${recipe.name}`;
   const text = recipe.description || `Check out this delicious vegan recipe: ${recipe.name}`;
-  
+
   // Check if Web Share API is available
   if (navigator.share) {
     try {
+      // Try to include the logo image in the share
+      let files: File[] | undefined;
+      try {
+        const logoDataUrl = await preloadImage(`${baseUrl}icons/icon-192x192.png`);
+        const logoFile = await dataUrlToFile(logoDataUrl, 'sprout-notes-logo.png');
+        // Check if file sharing is supported
+        if (navigator.canShare && navigator.canShare({ files: [logoFile] })) {
+          files = [logoFile];
+        }
+      } catch {
+        // Logo loading failed, share without image
+      }
+
       await navigator.share({
         title,
         text,
         url,
+        ...(files && { files }),
       });
       return;
     } catch (error) {
@@ -182,7 +208,7 @@ export const shareRecipe = async (
       console.log('Share canceled or failed, falling back to clipboard');
     }
   }
-  
+
   // Fallback: Copy to clipboard
   try {
     await navigator.clipboard.writeText(`${title}\n\n${text}\n\n${url}`);

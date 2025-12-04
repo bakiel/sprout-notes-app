@@ -4,6 +4,10 @@ import RecipeReview from './RecipeReview';
 import LoadingIndicator from './LoadingIndicator';
 import type { Review } from './RecipeReview';
 
+// Get base URL for assets (handles GitHub Pages deployment)
+const baseUrl = import.meta.env.BASE_URL || '/';
+const logoUrl = `${baseUrl}icons/icon-48x48.png`;
+
 interface Recipe {
   title: string;
   description?: string;
@@ -119,7 +123,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
       <div className="recipe-card__content">
         <div className="recipe-card__header">
           <img
-            src="/icons/icon-48x48.png"
+            src={logoUrl}
             alt="Sprout Notes"
             className="recipe-card__logo"
           />

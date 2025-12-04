@@ -1,5 +1,9 @@
 import React from 'react';
 
+// Get base URL for assets (handles GitHub Pages deployment)
+const baseUrl = import.meta.env.BASE_URL || '/';
+const logoUrl = `${baseUrl}icons/icon-48x48.png`;
+
 interface HeaderProps {
   showInstallButton?: boolean;
   onInstallClick?: () => void;
@@ -10,9 +14,9 @@ const Header: React.FC<HeaderProps> = ({ showInstallButton = false, onInstallCli
     <header className="site-header">
       <nav className="site-nav">
         <div className="site-logo">
-          <a href="/" className="logo-link">
+          <a href={baseUrl} className="logo-link">
             <img
-              src="/icons/icon-48x48.png"
+              src={logoUrl}
               alt="Sprout Notes"
               className="logo-image"
             />
