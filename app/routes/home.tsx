@@ -6,7 +6,7 @@ import NoteList from '../components/NoteList';
 import LoadingIndicator from '../components/LoadingIndicator';
 import Notification from '../components/Notification'; // Import Notification component
 import { supabase } from '../lib/supabaseClient';
-import { editRecipe } from '../lib/api/recipeGenerator'; // Import direct API client for editing
+import { editRecipe, generateRecipeImage } from '../lib/api/recipeGenerator'; // Import API functions
 import type { Review } from '../components/RecipeReview';
 import type { Recipe } from '../lib/hooks/useRecipeGenerator'; // Import Recipe type from hook
 
@@ -60,6 +60,17 @@ export default function Home() {
   
   // Notification state
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Clear potentially corrupted notes data on first load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log("Attempting to clear potentially corrupted notes data from localStorage...");
+      localStorage.removeItem(NOTES_STORAGE_KEY);
+      console.log("Notes data cleared from localStorage.");
+      // Reload the page to ensure clean state (optional, but can help)
+      // window.location.reload(); 
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // Load current recipe from localStorage
   useEffect(() => {
@@ -221,14 +232,14 @@ export default function Home() {
     setError(null);
     
     try {
-      // First try using Supabase Edge Function (if implemented)
+      // First try using OpenRouter proxy Edge Function
       try {
-        console.log("Attempting to use Supabase Edge Function for recipe editing...");
-        const { data, error: functionError } = await supabase.functions.invoke('deepseek-proxy', {
-          body: { 
+        console.log("Attempting to use OpenRouter proxy for recipe editing...");
+        const { data, error: functionError } = await supabase.functions.invoke('openrouter-proxy', {
+          body: {
+            action: 'edit',
             recipe: currentRecipe,
             editInstructions: editInstructions,
-            action: 'edit'
           },
         });
 
@@ -247,26 +258,26 @@ export default function Home() {
         };
         
         setCurrentRecipe(editedRecipe);
-        console.log("Successfully edited recipe using Supabase Edge Function");
+        console.log("Successfully edited recipe using OpenRouter proxy (DeepSeek V3.2)");
+
+      } catch (proxyError: any) {
+        // If OpenRouter proxy Edge Function fails, try direct API call
+        console.error("Error calling OpenRouter proxy for editing:", proxyError);
+        console.log("Falling back to direct OpenRouter API call for recipe editing...");
         
-      } catch (supabaseError: any) {
-        // If Supabase Edge Function fails, try direct API call
-        console.error("Error calling Supabase function for editing:", supabaseError);
-        console.log("Falling back to direct API call for recipe editing...");
-        
-        // Call DeepSeek API directly as a fallback
+        // Call OpenRouter API directly as a fallback
         const editedRecipe = await editRecipe({
           recipe: currentRecipe,
           editInstructions: editInstructions
         });
-        
+
         // Ensure the recipe ID is preserved
         if (currentRecipe.id && !editedRecipe.id) {
           editedRecipe.id = currentRecipe.id;
         }
-        
+
         setCurrentRecipe(editedRecipe);
-        console.log("Successfully edited recipe using direct API call");
+        console.log("Successfully edited recipe using direct OpenRouter API (DeepSeek V3.2)");
       }
       setNotification({ message: 'Recipe edited successfully!', type: 'success' });
     } catch (err: any) {
@@ -369,154 +380,65 @@ export default function Home() {
     setIsEditingNote(false);
   };
 
-  // Handle generating an image for the current recipe
+  // Handle generating an AI image for the current recipe using OpenRouter
   const handleGenerateImage = async (recipeTitle: string) => {
     if (!recipeTitle) return;
 
-    console.log(`Getting image for: ${recipeTitle}`);
+    console.log(`Generating AI image for: ${recipeTitle}`);
     setIsGeneratingImage(true);
     setImageError(null);
     setRecipeImage(null); // Clear previous image
-    setNotification({ message: 'Fetching recipe image...', type: 'info' });
+    setNotification({ message: 'Generating AI recipe image...', type: 'info' });
 
     try {
-      // First try to get a detailed visual description from DeepSeek
-      let enhancedQuery = "";
-      let source = "standard";
-      
-      try {
-        // Only attempt this if we have a current recipe with ingredients to describe
-        if (currentRecipe?.ingredients) {
-          console.log("Attempting to get food description from DeepSeek...");
-          const { data, error: functionError } = await supabase.functions.invoke('deepseek-proxy', {
-            body: { 
-              action: 'describe',
-              recipe: {
-                title: recipeTitle,
-                ingredients: currentRecipe.ingredients
-              }
-            }
-          });
+      // First try to use OpenRouter AI image generation (Nano Banana Pro)
+      const ingredients = currentRecipe?.ingredients || [];
+      const aiImageUrl = await generateRecipeImage(recipeTitle, ingredients);
 
-          if (functionError) throw functionError;
-          
-          if (data && typeof data.description === 'string' && data.description.length > 10) {
-            enhancedQuery = data.description;
-            source = "enhanced";
-            console.log("Got enhanced food description:", enhancedQuery);
-          }
-        }
-      } catch (descriptionError) {
-        console.warn("Could not get enhanced description from DeepSeek:", descriptionError);
-        // Continue with standard query - don't rethrow
+      if (aiImageUrl) {
+        setRecipeImage(aiImageUrl);
+        setNotification({
+          message: 'AI image generated successfully!',
+          type: 'success'
+        });
+        return;
       }
-      
-      // Build search query - use enhanced version if available, otherwise build from recipe title
-      const searchQuery = enhancedQuery || 
-        `fresh vegetables fruits colorful healthy food dish vegan ${recipeTitle.replace(/stir[\s-]fry|curry|soup|salad/gi, '')}`;
-      
+
+      // Fallback to Unsplash if AI generation fails
+      console.log("AI image generation failed, falling back to Unsplash...");
+      const searchQuery = `vegan ${recipeTitle} food dish`;
       const encodedQuery = encodeURIComponent(searchQuery);
-      console.log("Using search query:", searchQuery);
-      
-      // Try multiple image sources in sequence for better reliability
-      let imageUrl: string | null = null;
-      
+
       try {
-        // Primary source: Unsplash (no API key required) - focus on fruits and vegetables
         const unsplashUrl = `https://source.unsplash.com/random/800x600/?${encodedQuery}`;
         const unsplashResponse = await fetch(unsplashUrl, { method: 'GET' });
-        
+
         if (unsplashResponse.ok && unsplashResponse.url) {
-          imageUrl = unsplashResponse.url;
-        } else {
-          throw new Error("Unsplash source failed");
+          setRecipeImage(unsplashResponse.url);
+          setNotification({
+            message: 'Image fetched from Unsplash (AI generation unavailable)',
+            type: 'info'
+          });
+          return;
         }
-      } catch (primaryError) {
-        console.warn("Primary image source failed, trying backup source", primaryError);
-        source = "backup";
-        
-        // Try with a simplified query focused just on ingredients
-        const backupQuery = encodeURIComponent(`vegan food vegetables fruits ${
-          currentRecipe?.ingredients?.slice(0, 3).join(' ') || 'healthy'
-        }`);
-        
-        try {
-          // Try Unsplash again with simplified query and a more specific query for food
-          const simpleUnsplashUrl = `https://source.unsplash.com/random/800x600/?fresh+colorful+vegetables+fruits+${
-            currentRecipe?.ingredients?.slice(0, 2).join('+')}`;
-          const backupResponse = await fetch(simpleUnsplashUrl, { method: 'GET' });
-          
-          if (backupResponse.ok && backupResponse.url) {
-            imageUrl = backupResponse.url;
-          } else {
-            throw new Error("Backup Unsplash source failed");
-          }
-        } catch (backupError) {
-          console.warn("Backup Unsplash failed, trying food-specific Unsplash", backupError);
-          
-          // Last attempt: Explicitly use categories that always have vegetables/fruits
-          try {
-            // These specific queries almost always yield vegetable/fruit images
-            const foodCategories = [
-              'fresh+vegetables+plate',
-              'colorful+vegan+dish',
-              'healthy+plant+based',
-              'fresh+fruit+salad',
-              'vegetable+cutting+board',
-              'green+smoothie+bowl'
-            ];
-            // Pick a category based on recipe title or randomly
-            const categoryIndex = Math.floor(Math.random() * foodCategories.length);
-            const category = foodCategories[categoryIndex];
-            
-            const finalUrl = `https://source.unsplash.com/featured/?${category}`;
-            const finalResponse = await fetch(finalUrl, { method: 'GET' });
-            
-            if (finalResponse.ok && finalResponse.url) {
-              imageUrl = finalResponse.url;
-            } else {
-              throw new Error("All Unsplash attempts failed");
-            }
-          } catch (finalError) {
-            console.warn("All image sources failed, using local fallback", finalError);
-            // We don't set imageUrl here, so it will use the app icon as fallback
-          }
-        }
+      } catch (unsplashError) {
+        console.warn("Unsplash fallback failed:", unsplashError);
       }
-      
-      // Simulate a small delay for better UX if we got the image quickly
-      if (Date.now() - performance.now() < 500) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-      
-      // Set the image URL
-      if (imageUrl) {
-        setRecipeImage(imageUrl);
-        setNotification({ 
-          message: `Image fetched successfully${
-            source === "enhanced" ? " (with AI-enhanced description)" : 
-            source === "backup" ? " (using backup source)" : ""
-          }!`, 
-          type: 'success' 
-        });
-      } else {
-        // If all sources fail, use a placeholder veggie image
-        // Use our logo as the absolute last resort
-        setRecipeImage("/icons/icon-192x192.png");
-        setImageError("Could not fetch food image, using placeholder");
-        setNotification({ 
-          message: "Using placeholder image - external image sources unavailable", 
-          type: 'info' 
-        });
-      }
-    } catch (err: any) {
-      console.error("All image sources failed:", err);
-      // Final fallback - use our app icon as a placeholder
+
+      // Final fallback - use placeholder
       setRecipeImage("/icons/icon-192x192.png");
-      setImageError(`Could not fetch image: ${err.message || 'Unknown error'}`);
-      setNotification({ 
-        message: "Using placeholder image - please try again later", 
-        type: 'info' 
+      setImageError("Could not generate or fetch image");
+      setNotification({
+        message: "Using placeholder image - please try again later",
+        type: 'info'
+      });
+    } catch (err: any) {
+      console.error("Image generation failed:", err);
+      setRecipeImage("/icons/icon-192x192.png");
+      setImageError(`Could not generate image: ${err.message || 'Unknown error'}`);
+      setNotification({
+        message: "Using placeholder image - please try again later",
+        type: 'info'
       });
     } finally {
       setIsGeneratingImage(false);
@@ -533,14 +455,19 @@ export default function Home() {
         <RecipeGeneratorForm 
           onRecipeGenerated={setCurrentRecipe} 
           onLoadingChange={setIsLoading}     
-          onError={(errMsg) => { // Use callback to set error and notification
+          onError={(errMsg) => {
             setError(errMsg);
             if (errMsg) {
               setNotification({ message: errMsg, type: 'error' });
             }
           }}
+          // Clear image when generation starts
+          onGenerationStart={() => {
+            setRecipeImage(null); 
+            setImageError(null);
+          }}
           resetKey={formResetKey}
-        /> 
+        />
         {/* Error display is now handled by the notification system */}
         {/* {error && <p style={{ color: 'red', marginTop: '1rem' }}>Error: {error}</p>} */}
       </section>

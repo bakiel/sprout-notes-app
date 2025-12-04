@@ -25,8 +25,15 @@ interface RecipeDescriptionRequestBody {
   action: 'describe';
 }
 
+// Interface for pantry list request body
+interface PantryListRequestBody {
+  ingredients: string[];
+  country?: string; // Add optional country parameter
+  action: 'generatePantryList';
+}
+
 // Combined request body type
-type RequestBody = RecipeGenerationRequestBody | RecipeEditRequestBody | RecipeDescriptionRequestBody;
+type RequestBody = RecipeGenerationRequestBody | RecipeEditRequestBody | RecipeDescriptionRequestBody | PantryListRequestBody;
 
 // Interface for the recipe response
 interface Recipe {
@@ -58,6 +65,11 @@ function isRecipeDescriptionRequest(request: any): request is RecipeDescriptionR
   return request && request.action === 'describe' && request.recipe && request.recipe.title;
 }
 
+// Helper function to determine if the request is for pantry list generation
+function isPantryListRequest(request: any): request is PantryListRequestBody {
+  return request && request.action === 'generatePantryList' && Array.isArray(request.ingredients);
+}
+
 serve(async (req) => {
   // Handle CORS preflight request
   const corsResponse = handleCors(req);
@@ -76,11 +88,12 @@ serve(async (req) => {
 
     // Parse request JSON
     const requestData: RequestBody = await req.json();
-    
-    // Determine which type of request this is: recipe editing, food description, or recipe generation
+
+    // Determine which type of request this is: recipe editing, food description, pantry list, or recipe generation
     let prompt: string;
     let isDescriptionRequest = false;
-    
+    let isPantryRequest = false;
+
     if (isRecipeDescriptionRequest(requestData)) {
       // Food description request for image search
       const { recipe } = requestData;
@@ -100,6 +113,41 @@ Provide a single paragraph description (60-80 words) that would help someone fin
 
       console.log("Calling DeepSeek API for food description of:", recipe.title);
       isDescriptionRequest = true;
+    } else if (isPantryListRequest(requestData)) {
+      // Pantry list generation request
+      const { ingredients, country } = requestData;
+
+      if (!ingredients || ingredients.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Invalid request: ingredients are required for pantry list generation" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      // Add country-specific context if provided
+      const countryContext = country ? 
+        `Consider that this shopping list is for someone in ${country}. Adapt ingredient names, measurements, and packaging to match what would be commonly found in ${country} grocery stores.` 
+        : '';
+
+      // Craft prompt for pantry list generation
+      prompt = `Based on the following list of ingredients for a vegan recipe, generate a categorized shopping list:
+Ingredients: ${ingredients.join(', ')}
+
+${countryContext}
+
+Organize the shopping list into logical categories (e.g., Produce, Pantry Staples, Spices & Herbs, Refrigerated/Frozen). Only include items derived directly from the provided ingredients list. Return the result as a JSON object where keys are the category names and values are arrays of ingredient strings. The response should be valid JSON only. Example format:
+{
+  "Produce": ["onion", "garlic", "bell pepper"],
+  "Pantry Staples": ["canned tomatoes", "lentils", "rice"],
+  "Spices & Herbs": ["cumin", "paprika", "fresh cilantro"]
+}`;
+
+      console.log("Calling DeepSeek API for pantry list generation with ingredients:", ingredients.join(", "));
+      isPantryRequest = true;
+
     } else if (isRecipeEditRequest(requestData)) {
       // Recipe editing request
       const { recipe, editInstructions } = requestData;
@@ -214,7 +262,7 @@ Return the modified recipe in the same JSON format with all the same fields. Pre
 
     // Handle differently based on request type
     if (isDescriptionRequest) {
-      // For food description requests, we want plain text, not JSON
+      // For food description requests, return plain text description
       const description = content.trim();
       console.log("Food description generated:", description);
       
@@ -225,24 +273,35 @@ Return the modified recipe in the same JSON format with all the same fields. Pre
           headers: { "Content-Type": "application/json" },
         })
       );
-    } else {
+    } else { // Handles Recipe Generation, Recipe Editing, and Pantry List Generation
       try {
         // Parse JSON from DeepSeek response
         // Sometimes DeepSeek might include markdown backticks for JSON, so we need to handle that
         const jsonStr = content.replace(/```json|```/g, '').trim();
-        const recipeData = JSON.parse(jsonStr) as Recipe;
+        const responseData = JSON.parse(jsonStr); // Parse as generic object first
 
-        // Return the recipe data
+        // Determine response format based on request type
+        let finalResponseData;
+        if (isPantryRequest) {
+          finalResponseData = { pantryList: responseData }; // Wrap pantry list data
+          console.log("Pantry list generated:", JSON.stringify(finalResponseData, null, 2));
+        } else {
+          // Assume it's recipe data (generation or editing)
+          finalResponseData = { recipe: responseData as Recipe };
+          console.log("Recipe data processed:", JSON.stringify(finalResponseData, null, 2));
+        }
+
+        // Return the appropriate data structure
         return addCorsHeaders(
-          new Response(JSON.stringify({ recipe: recipeData }), {
+          new Response(JSON.stringify(finalResponseData), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           })
         );
       } catch (jsonError) {
-        console.error("Error parsing DeepSeek response:", jsonError);
-        console.error("Response content:", content);
-        throw new Error("Failed to parse recipe data from DeepSeek API");
+        console.error("Error parsing DeepSeek JSON response:", jsonError);
+        console.error("Raw response content:", content);
+        throw new Error("Failed to parse JSON data from DeepSeek API");
       }
     }
   } catch (error) {

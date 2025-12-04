@@ -127,6 +127,44 @@ This document outlines the specific tasks required to implement the Sprout Notes
 | Implement PDF download with nice formatting | P1 | M | DONE | Cline |
 | Implement recipe history tracking | P2 | M | TODO | |
 
+### Recipe Archive & Pantry List
+
+| Task | Priority | Effort | Status | Assigned To |
+|------|----------|--------|--------|-------------|
+| **Backend (Supabase Function)** |  |  |  |  |
+| Modify `deepseek-proxy` to handle `generatePantryList` action | P2 | M | DONE | Cline |
+| Define request/response interfaces for pantry list | P2 | S | DONE | Cline |
+| Craft DeepSeek prompt for categorized shopping list | P2 | S | DONE | Cline |
+| Implement JSON parsing and error handling for pantry list response | P2 | S | DONE | Cline |
+| Add `country` parameter support to `deepseek-proxy` for localization | P2 | S | DONE | Cline |
+| **Frontend (Archive Page)** |  |  |  |  |
+| Create route `app/routes/archive.tsx` | P2 | S | DONE | Cline |
+| Fetch recipes from `recipes` table in `archive.tsx` | P2 | M | DONE | Cline |
+| Implement state management for recipes, viewMode, filters | P2 | M | DONE | Cline |
+| Add UI controls: Search input, Filter toggle, View toggle buttons | P2 | M | DONE | Cline |
+| Create expanded filter panel UI (Sort, Ingredient, Time, Dietary) | P2 | M | DONE | Cline |
+| Implement filtering logic (Search, Ingredient, Time, Dietary) | P2 | M | DONE | Cline |
+| Implement sorting logic (Date, Title, Prep Time, Cook Time) | P2 | M | DONE | Cline |
+| Create `app/components/RecipeArchiveItem.tsx` component | P2 | M | DONE | Cline |
+| Implement Grid view layout in `RecipeArchiveItem` | P2 | M | DONE | Cline |
+| Implement List view layout in `RecipeArchiveItem` | P2 | M | DONE | Cline |
+| Display recipe image (`imageUrl` or placeholder) | P2 | S | DONE | Cline |
+| **Frontend (Sharing & Shopping List)** |  |  |  |  |
+| Create `app/components/SocialShareButtons.tsx` component | P2 | M | DONE | Cline |
+| Implement share logic (Web Share, Facebook, Twitter, Pinterest, WhatsApp) | P2 | M | DONE | Cline |
+| Create `app/components/ShoppingListGenerator.tsx` component | P2 | M | DONE | Cline |
+| Add country selector dropdown to `ShoppingListGenerator` | P2 | S | DONE | Cline |
+| Implement DeepSeek API call in `ShoppingListGenerator` (with country) | P2 | M | DONE | Cline |
+| Implement UI to display generated shopping list in modal | P2 | M | DONE | Cline |
+| Add loading/error states for shopping list generation | P2 | S | DONE | Cline |
+| Implement WhatsApp formatting logic in `SocialShareButtons` | P2 | S | DONE | Cline |
+| Integrate `SocialShareButtons` into `RecipeArchiveItem` | P2 | S | DONE | Cline |
+| Integrate `ShoppingListGenerator` modal into `RecipeArchiveItem` | P2 | M | DONE | Cline |
+| **Styling** |  |  |  |  |
+| Add CSS classes for archive page and components in `app.css` | P2 | M | DONE | Cline |
+| Add CSS for `SocialShareButtons` | P2 | S | DONE | Cline |
+| Add CSS for `ShoppingListGenerator` modal | P2 | M | DONE | Cline |
+
 ---
 
 ## Phase 3: Note-Taking Feature

@@ -16,7 +16,10 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
 - 📷 **Image Recognition**: Identify ingredients from photos to get instant recipe suggestions
 - 🔊 **Voice Narration**: Listen to recipes being read aloud while you cook
 - 📝 **Smart Note Organization**: Keep your cooking ideas organized with AI-categorized notes
-- 👥 **Community Sharing**: Share recipes and discover dishes from other plant-based food lovers
+- 🗂️ **Recipe Archive**: Browse, filter, and sort all your saved recipes with grid/list views.
+- 🛒 **Shopping List Generation**: Automatically create categorized shopping lists from recipes, localized for your country.
+- 📲 **Easy Sharing**: Share recipes via social media and send shopping lists directly to WhatsApp.
+- 👥 **Community Sharing**: Share recipes and discover dishes from other plant-based food lovers (Future Enhancement)
 
 ## Getting Started
 

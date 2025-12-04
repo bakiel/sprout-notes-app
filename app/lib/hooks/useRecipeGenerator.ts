@@ -97,17 +97,18 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
     try {
       let generatedRecipe: Recipe | null = null;
 
-      // Option 1: Try calling the Supabase Edge Function first
+      // Option 1: Try calling the Supabase Edge Function first (OpenRouter proxy)
       try {
         const { data: functionData, error: functionError } = await supabase.functions.invoke(
-        'deepseek-proxy', // Ensure this matches your function name
+        'openrouter-proxy', // Using unified OpenRouter proxy with DeepSeek V3.2
         {
           body: {
+            action: 'generateRecipe',
             ingredients: params.ingredients,
-            dietary_restrictions: params.dietaryRestrictions,
-            cuisine_type: params.cuisineType,
-            meal_type: params.mealType, // Pass mealType to function
-            serving_size: params.servingSize,
+            restrictions: params.dietaryRestrictions || [],
+            cuisineType: params.cuisineType,
+            mealType: params.mealType,
+            servingSize: params.servingSize,
           },
         }
       );
@@ -116,23 +117,18 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
           throw functionError; // Rethrow to be caught by the outer catch block for fallback
         }
 
-        // Parse function data (handle string or object response)
-        if (typeof functionData === 'string') {
-          try {
-            const parsedData = JSON.parse(functionData);
-            if (parsedData && parsedData.title && parsedData.ingredients && parsedData.instructions) {
-              generatedRecipe = parsedData as Recipe;
-            } else { throw new Error('Invalid recipe structure in function response string.'); }
-          } catch (parseError) { throw new Error(`Failed to parse function response: ${parseError}`); }
+        // Parse function data - OpenRouter proxy returns { recipe: {...} }
+        if (functionData?.recipe) {
+          generatedRecipe = functionData.recipe as Recipe;
         } else if (typeof functionData === 'object' && functionData !== null && functionData.title && functionData.ingredients && functionData.instructions) {
           generatedRecipe = functionData as Recipe;
         } else {
-          throw new Error('Unexpected data format from Supabase function.');
+          throw new Error('Unexpected data format from OpenRouter proxy.');
         }
-        console.log("Recipe generated via Supabase function.");
+        console.log("Recipe generated via OpenRouter proxy (DeepSeek V3.2).");
 
       } catch (functionError: any) {
-        console.warn('Supabase function call failed, falling back to direct API call:', functionError.message);
+        console.warn('OpenRouter proxy failed, falling back to direct OpenRouter API call:', functionError.message);
         
         // Option 2: Fallback to direct API call
         const directApiParams = {
@@ -144,9 +140,9 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
         };
         generatedRecipe = await generateRecipeDirectly(directApiParams);
         if (!generatedRecipe) {
-          throw new Error('Direct API call failed to return a recipe.');
+          throw new Error('Direct OpenRouter API call failed to return a recipe.');
         }
-        console.log("Recipe generated via direct API call.");
+        console.log("Recipe generated via direct OpenRouter API (DeepSeek V3.2).");
       }
 
       // 3. Update state and cache

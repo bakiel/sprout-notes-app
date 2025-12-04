@@ -12,6 +12,9 @@ Sprout Notes is an AI-powered vegan recipe and note-taking application that help
 
 - 🧠 **AI Recipe Generation**: Create custom vegan recipes based on your available ingredients, dietary needs, and cuisine preferences
 - 📝 **Smart Note Organization**: Keep your cooking ideas organized with easy note creation and searching
+- 🗂️ **Recipe Archive**: Browse, filter (by keyword, ingredient, time, dietary preference), and sort all your saved recipes with grid/list views.
+- 🛒 **Shopping List Generation**: Automatically create categorized shopping lists from recipes, localized for your country.
+- 📲 **Easy Sharing**: Share recipes via social media (Facebook, Twitter, Pinterest) and send shopping lists directly to WhatsApp.
 - 🎨 **Modern UI Experience**: Clean, intuitive interface for recipe generation and note-taking
 - 💾 **Offline Persistence**: Save recipes and notes locally for easy access, even without an internet connection
 - 🔄 **Flexible API Integration**: Direct API fallback when Supabase Edge Functions aren't available

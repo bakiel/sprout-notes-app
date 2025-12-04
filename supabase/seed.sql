@@ -83,19 +83,42 @@ ALTER TABLE public.notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipe_categories ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies first to avoid conflicts if script is re-run
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view their own recipes" ON public.recipes;
+DROP POLICY IF EXISTS "Users can create their own recipes" ON public.recipes;
+DROP POLICY IF EXISTS "Users can update their own recipes" ON public.recipes;
+DROP POLICY IF EXISTS "Users can delete their own recipes" ON public.recipes;
+DROP POLICY IF EXISTS "Allow public read access" ON public.recipes; -- Drop the new one too, just in case
+DROP POLICY IF EXISTS "Users can view their own notes" ON public.notes;
+DROP POLICY IF EXISTS "Users can create their own notes" ON public.notes;
+DROP POLICY IF EXISTS "Users can update their own notes" ON public.notes;
+DROP POLICY IF EXISTS "Users can delete their own notes" ON public.notes;
+DROP POLICY IF EXISTS "Users can view their own categories" ON public.categories;
+DROP POLICY IF EXISTS "Users can create their own categories" ON public.categories;
+DROP POLICY IF EXISTS "Users can update their own categories" ON public.categories;
+DROP POLICY IF EXISTS "Users can delete their own categories" ON public.categories;
+DROP POLICY IF EXISTS "Users can view their own recipe categories" ON public.recipe_categories;
+DROP POLICY IF EXISTS "Users can create their own recipe categories" ON public.recipe_categories;
+DROP POLICY IF EXISTS "Users can delete their own recipe categories" ON public.recipe_categories;
+
+
 -- Create policies
 -- Profiles: users can only read/update their own profile
-CREATE POLICY "Users can view their own profile" 
+CREATE POLICY "Users can view their own profile"
     ON public.profiles FOR SELECT USING (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile" 
     ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- Recipes: users can CRUD their own recipes
-CREATE POLICY "Users can view their own recipes" 
-    ON public.recipes FOR SELECT USING (auth.uid() = user_id);
+-- Recipes: Allow public read access for now (MVP without auth)
+-- Later, this might be changed back or adjusted based on public/private recipes
+CREATE POLICY "Allow public read access"
+    ON public.recipes FOR SELECT USING (true);
 
-CREATE POLICY "Users can create their own recipes" 
+-- Policies for authenticated users (will apply when auth is implemented)
+CREATE POLICY "Users can create their own recipes"
     ON public.recipes FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own recipes" 
