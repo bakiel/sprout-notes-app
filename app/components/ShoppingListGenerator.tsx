@@ -68,6 +68,9 @@ const ShoppingListGenerator: React.FC<ShoppingListGeneratorProps> = ({
     setShowShareButtons(false);
 
     try {
+      if (!supabase) {
+        throw new Error("Shopping list generation requires Supabase to be configured");
+      }
       const { data, error: fnError } = await supabase.functions.invoke('deepseek-proxy', {
         body: {
           action: 'generatePantryList',

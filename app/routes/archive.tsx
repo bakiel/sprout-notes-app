@@ -31,6 +31,12 @@ const RecipeArchive: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
+        if (!supabase) {
+          // No Supabase - show message that archive requires database
+          setRecipes([]);
+          console.log('Archive: Supabase not configured, showing empty archive');
+          return;
+        }
         const { data, error: fetchError } = await supabase
           .from('recipes')
           .select('*')

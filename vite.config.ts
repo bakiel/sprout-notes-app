@@ -4,8 +4,8 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => ({
-  // Base path: '/' for dev, '/sprout-notes-app/' for production (GitHub Pages)
-  base: mode === 'production' ? '/sprout-notes-app/' : '/',
+  // Base path: '/' for all environments (Vercel doesn't need subdirectory)
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),

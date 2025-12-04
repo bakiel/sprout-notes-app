@@ -8,9 +8,6 @@ import App, { ErrorBoundary } from './root'; // Import App and ErrorBoundary
 import Home from './routes/home'; // Import Home route component
 import RecipeArchive from './routes/archive'; // Re-import Archive route component
 
-// Determine basename based on environment (for GitHub Pages)
-const basename = import.meta.env.PROD ? '/sprout-notes-app' : '/';
-
 // Define routes using createBrowserRouter
 const router = createBrowserRouter([
   {
@@ -29,7 +26,7 @@ const router = createBrowserRouter([
       // Add other routes here as needed
     ],
   },
-], { basename });
+]);
 
 // Get the root element
 const rootElement = document.getElementById('root');

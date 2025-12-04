@@ -76,9 +76,12 @@ export default function App() {
   // Render Header, Outlet (page content), and Footer
   return (
     <div className="app-layout">
-      <Header /> 
+      <Header
+        showInstallButton={showInstallButton}
+        onInstallClick={handleInstallClick}
+      />
       <main className="app-container">
-        <Outlet /> 
+        <Outlet />
       </main>
       <Footer />
     </div>

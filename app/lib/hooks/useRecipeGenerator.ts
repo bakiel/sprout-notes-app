@@ -99,6 +99,9 @@ const useRecipeGenerator = (): UseRecipeGeneratorReturn => {
 
       // Option 1: Try calling the Supabase Edge Function first (OpenRouter proxy)
       try {
+        if (!supabase) {
+          throw new Error("Supabase not configured, using direct API");
+        }
         const { data: functionData, error: functionError } = await supabase.functions.invoke(
         'openrouter-proxy', // Using unified OpenRouter proxy with DeepSeek V3.2
         {

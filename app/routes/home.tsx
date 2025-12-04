@@ -232,8 +232,11 @@ export default function Home() {
     setError(null);
     
     try {
-      // First try using OpenRouter proxy Edge Function
+      // First try using OpenRouter proxy Edge Function (only if Supabase is configured)
       try {
+        if (!supabase) {
+          throw new Error("Supabase not configured, using direct API");
+        }
         console.log("Attempting to use OpenRouter proxy for recipe editing...");
         const { data, error: functionError } = await supabase.functions.invoke('openrouter-proxy', {
           body: {
@@ -250,13 +253,13 @@ export default function Home() {
         if (!data || typeof data !== 'object' || !data.recipe) {
           throw new Error("Invalid response format from recipe editor.");
         }
-        
+
         // Ensure the recipe ID is preserved
         const editedRecipe = {
           ...data.recipe as Recipe,
           id: currentRecipe.id
         };
-        
+
         setCurrentRecipe(editedRecipe);
         console.log("Successfully edited recipe using OpenRouter proxy (DeepSeek V3.2)");
 
