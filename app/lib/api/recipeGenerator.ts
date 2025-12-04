@@ -31,7 +31,46 @@ export interface RecipeEditRequest {
 // OpenRouter API configuration (client-side fallback)
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
-const DEEPSEEK_MODEL = "deepseek/deepseek-chat"; // DeepSeek V3 chat model
+const DEEPSEEK_MODEL = "deepseek/deepseek-v3.2"; // DeepSeek V3.2 - latest version
+
+/**
+ * Convert any image (base64 or URL) to JPEG format for smaller file size
+ * @param imageSource - Base64 data URL or image URL
+ * @param quality - JPEG quality (0-1), default 0.85
+ * @returns Promise resolving to JPEG base64 data URL
+ */
+export async function convertToJpeg(imageSource: string, quality: number = 0.85): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+
+      // Fill with white background (for transparency handling)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw image
+      ctx.drawImage(img, 0, 0);
+
+      // Convert to JPEG
+      const jpegDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(jpegDataUrl);
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image for conversion'));
+    img.src = imageSource;
+  });
+}
 
 /**
  * Helper to call OpenRouter API directly (fallback when Edge Function unavailable)
@@ -160,7 +199,7 @@ export async function generateRecipe(request: RecipeRequest): Promise<Recipe> {
   const prompt = `Generate a delicious vegan recipe using these ingredients: ${ingredients.join(", ")}.${restrictionsText}${cuisineText}${mealTypeText}${servingSizeText}
 
 The recipe should be practical for home cooking. Format the response as a JSON object with these fields:
-- title: Creative, appetizing name
+- title: Creative, appetising name
 - description: Brief enticing description (1-2 sentences)
 - ingredients: Array of ingredients with measurements
 - instructions: Array of clear step-by-step instructions
@@ -217,13 +256,13 @@ export async function generateRecipeImage(recipeName: string, ingredients: strin
   const IMAGE_MODEL = "google/gemini-3-pro-image-preview";
 
   const ingredientList = ingredients.slice(0, 5).join(', ');
-  const prompt = `Generate a beautiful, appetizing photograph of a vegan dish called "${recipeName}"${ingredientList ? ` featuring ${ingredientList}` : ''}.
+  const prompt = `Generate a beautiful, appetising photograph of a vegan dish called "${recipeName}"${ingredientList ? ` featuring ${ingredientList}` : ''}.
 
 The image should have:
 - Professional food photography styling
 - Natural soft lighting from the side
 - Clean white ceramic plate or rustic wooden board
-- Fresh, vibrant colors of vegetables and ingredients
+- Fresh, vibrant colours of vegetables and ingredients
 - Shallow depth of field for artistic effect
 - Restaurant-quality plating and presentation
 - Appropriate garnishes (fresh herbs, seeds, or microgreens)
@@ -246,7 +285,11 @@ Style: editorial food photography, high resolution, warm inviting tones.`;
         model: IMAGE_MODEL,
         messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
-        image_config: { aspect_ratio: "16:9" }
+        image_config: {
+          aspect_ratio: "16:9",
+          width: 1024,  // 1K resolution instead of 4K
+          height: 576   // 16:9 at 1K
+        }
       }),
     });
 
@@ -269,6 +312,19 @@ Style: editorial food photography, high resolution, warm inviting tones.`;
     if (!imageUrl && message?.content) {
       const match = message.content.match(/data:image\/[^;]+;base64,[^\s"']+/);
       if (match) imageUrl = match[0];
+    }
+
+    // Convert to JPEG for smaller file size
+    if (imageUrl) {
+      try {
+        console.log("Converting image to JPEG format...");
+        const jpegImage = await convertToJpeg(imageUrl, 0.85);
+        console.log("Image converted to JPEG successfully");
+        return jpegImage;
+      } catch (conversionError) {
+        console.warn("Failed to convert image to JPEG, using original:", conversionError);
+        return imageUrl;
+      }
     }
 
     return imageUrl;

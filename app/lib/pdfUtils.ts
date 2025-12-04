@@ -7,24 +7,46 @@ const baseUrl = import.meta.env.BASE_URL || '/';
 /**
  * Preloads an image and returns it as a data URL
  * @param url - URL of the image to load
+ * @param maxWidth - Maximum width to resize to (for compression)
+ * @param quality - JPEG quality (0-1), only applies to JPEG format
  * @returns Promise resolving to the image data URL
  */
-const preloadImage = async (url: string): Promise<string> => {
+const preloadImage = async (
+  url: string,
+  maxWidth?: number,
+  quality: number = 0.8
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";  // Handle CORS issues
     img.onload = () => {
       // Create canvas to convert to data URL
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+
+      // Resize if maxWidth specified and image is larger
+      let width = img.width;
+      let height = img.height;
+      if (maxWidth && width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         reject(new Error('Failed to get canvas context'));
         return;
       }
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Use JPEG for photos (better compression), PNG for logos/icons
+      const isLogo = url.includes('icon') || url.includes('logo');
+      if (isLogo) {
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      }
     };
     img.onerror = () => reject(new Error(`Failed to load image from ${url}`));
     img.src = url;
@@ -70,11 +92,32 @@ export const generateRecipePDF = async (
     }
 
     // Create a canvas from the recipe card element
+    // Using scale 2 for sharp text and vivid colors in PDF
     const canvas = await html2canvas(recipeCardElement, {
-      scale: 2, // Higher scale for better quality
+      scale: 2, // Higher scale for crisp text
       useCORS: true, // Allow images from other domains
       logging: false,
       backgroundColor: '#ffffff', // White background
+      onclone: (clonedDoc) => {
+        // Force text colors in cloned document for proper rendering
+        const clonedElement = clonedDoc.querySelector('.pdf-export-mode');
+        if (clonedElement) {
+          const allText = clonedElement.querySelectorAll('h1, h2, h3, h4, p, li, span');
+          allText.forEach((el) => {
+            (el as HTMLElement).style.opacity = '1';
+          });
+
+          // Ensure step numbers are visible with white text
+          const stepNumbers = clonedElement.querySelectorAll('.recipe-card__step-number, .instruction-step__number');
+          stepNumbers.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            htmlEl.style.color = '#ffffff';
+            htmlEl.style.opacity = '1';
+            htmlEl.style.background = '#2d5a4a';
+            htmlEl.style.setProperty('-webkit-text-fill-color', '#ffffff');
+          });
+        }
+      }
     });
 
     // Calculate dimensions for A4 page (210mm x 297mm)
@@ -129,10 +172,11 @@ export const generateRecipePDF = async (
     }
     
     // Add the recipe image (position below header area)
+    // Use JPEG with high quality (0.92) for smaller file size while maintaining quality
     pdf.addImage(
-      canvas.toDataURL('image/png'),
-      'PNG',
-      xPos, 
+      canvas.toDataURL('image/jpeg', 0.92),
+      'JPEG',
+      xPos,
       headerHeight, // Start image below the header area
       imgWidth,
       imgHeight

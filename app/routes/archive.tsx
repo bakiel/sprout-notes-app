@@ -69,7 +69,7 @@ const RecipeArchive: React.FC = () => {
       <header className="archive-header">
         <Link to="/" className="back-to-home-link">← Back to Home</Link>
         <h1 className="archive-title">Recipe Archive</h1>
-        <p className="archive-subtitle">Browse and discover all your favorite plant-based recipes</p>
+        <p className="archive-subtitle">Browse and discover all your favourite plant-based recipes</p>
       </header>
       <div className="recipes-container">
         {isLoading ? (

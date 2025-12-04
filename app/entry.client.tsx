@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { 
-  createBrowserRouter, 
-  RouterProvider 
+import {
+  createBrowserRouter,
+  RouterProvider
 } from 'react-router-dom';
 import App, { ErrorBoundary } from './root'; // Import App and ErrorBoundary
 import Home from './routes/home'; // Import Home route component
 import RecipeArchive from './routes/archive'; // Re-import Archive route component
+import { ConvexClientProvider } from './lib/convex'; // Import Convex provider
 
 // Define routes using createBrowserRouter
 const router = createBrowserRouter([
@@ -35,10 +36,12 @@ if (rootElement) {
   // Use createRoot for React 18+
   const root = ReactDOM.createRoot(rootElement);
   
-  // Render the app using RouterProvider
+  // Render the app using RouterProvider wrapped with ConvexProvider
   root.render(
     <React.StrictMode>
-      <RouterProvider router={router} />
+      <ConvexClientProvider>
+        <RouterProvider router={router} />
+      </ConvexClientProvider>
     </React.StrictMode>
   );
 } else {

@@ -1358,6 +1358,54 @@ footer a:hover {
   height: auto !important;
 }
 
+/* Force strong text colors for PDF rendering */
+.pdf-export-mode,
+.pdf-export-mode * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+.pdf-export-mode h1,
+.pdf-export-mode h2,
+.pdf-export-mode h3,
+.pdf-export-mode .recipe-card__title {
+  color: #2d5a4a !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #2d5a4a !important;
+}
+
+.pdf-export-mode p,
+.pdf-export-mode li,
+.pdf-export-mode span,
+.pdf-export-mode .recipe-card__description {
+  color: #333333 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #333333 !important;
+}
+
+.pdf-export-mode .recipe-card__meta,
+.pdf-export-mode .recipe-card__meta span {
+  color: #555555 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #555555 !important;
+}
+
+.pdf-export-mode .recipe-card__section-title {
+  color: #2d5a4a !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #2d5a4a !important;
+}
+
+/* Step numbers - ensure white text is visible on gradient background */
+.pdf-export-mode .recipe-card__step-number,
+.pdf-export-mode .instruction-step__number {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: #2d5a4a !important; /* Solid color instead of gradient for better rendering */
+}
+
 /* ==========================================================================
    Archive Page Styles
    ========================================================================== */

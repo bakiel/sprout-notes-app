@@ -26,7 +26,7 @@ interface Note {
 export function meta(args: any) {
   return [
     { title: "Sprout Notes 🌱 - AI Vegan Recipes & Notes" },
-    { name: "description", content: "Generate vegan recipes and organize your cooking notes with AI." },
+    { name: "description", content: "Generate vegan recipes and organise your cooking notes with AI." },
   ];
 }
 
