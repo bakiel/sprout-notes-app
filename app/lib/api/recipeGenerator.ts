@@ -246,7 +246,7 @@ Style: editorial food photography, high resolution, warm inviting tones.`;
         model: IMAGE_MODEL,
         messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
-        image_config: { aspect_ratio: "4:3" }
+        image_config: { aspect_ratio: "16:9" }
       }),
     });
 
