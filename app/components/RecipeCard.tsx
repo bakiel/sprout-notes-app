@@ -117,7 +117,14 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
 
       {/* Main Content */}
       <div className="recipe-card__content">
-        <h3 className="recipe-card__title">{recipe.title}</h3>
+        <div className="recipe-card__header">
+          <img
+            src="/icons/icon-48x48.png"
+            alt="Sprout Notes"
+            className="recipe-card__logo"
+          />
+          <h3 className="recipe-card__title">{recipe.title}</h3>
+        </div>
         {recipe.description && (
           <p className="recipe-card__description">{recipe.description}</p>
         )}

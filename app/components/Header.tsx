@@ -11,7 +11,11 @@ const Header: React.FC<HeaderProps> = ({ showInstallButton = false, onInstallCli
       <nav className="site-nav">
         <div className="site-logo">
           <a href="/" className="logo-link">
-            <span className="logo-icon">🌱</span>
+            <img
+              src="/icons/icon-48x48.png"
+              alt="Sprout Notes"
+              className="logo-image"
+            />
             <span className="logo-text">Sprout Notes</span>
           </a>
         </div>

@@ -30,8 +30,8 @@ export interface RecipeEditRequest {
 
 // OpenRouter API configuration (client-side fallback)
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const OPENROUTER_API_KEY = "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";
-const DEEPSEEK_MODEL = "deepseek/deepseek-v3.2";
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+const DEEPSEEK_MODEL = "deepseek/deepseek-chat"; // DeepSeek V3 chat model
 
 /**
  * Helper to call OpenRouter API directly (fallback when Edge Function unavailable)
